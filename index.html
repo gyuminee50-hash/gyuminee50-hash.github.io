@@ -236,6 +236,32 @@
     border-top: 1px solid rgba(255,255,255,0.05);
   }
 
+  /* ACTIVITY LOG */
+  .log-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 24px; margin-bottom: 48px;
+  }
+  .log-updated { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; letter-spacing: 1px; }
+  .log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .log-dept {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .log-dept-head {
+    font-size: 12px; font-weight: 700; color: var(--gold);
+    letter-spacing: 1px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .log-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 3px 0; }
+  .log-sym { color: var(--text-dim); font-weight: 600; width: 44px; }
+  .log-price { color: var(--text-dim); font-size: 11px; }
+  .log-chg { font-weight: 700; font-size: 13px; }
+  .log-chg.up { color: var(--green); }
+  .log-chg.dn { color: var(--red); }
+  .log-line { font-size: 12px; color: var(--text-dim); padding: 3px 0; line-height: 1.5; }
+  .log-alert { font-size: 12px; color: #f97316; padding: 3px 0; }
+  .log-ok { font-size: 12px; color: var(--green); padding: 3px 0; }
+
   /* FOOTER */
   footer {
     text-align: center; padding: 32px;
@@ -299,6 +325,29 @@
       <h3>ROY</h3>
       <div class="title">실무총괄 사장 · GM Capital Operations</div>
       <p>GM Capital의 실무를 총괄합니다. 이사장 김규민의 지시를 받아 4개 부서(INF·DAT·AP·DES)를 조율하고, 브리핑·리포트·홈페이지 업그레이드를 실행합니다. 매일 저녁 업그레이드 제안을 드립니다.</p>
+    </div>
+  </div>
+
+  <div id="activitylog" class="section-title">📋 부서별 활동 로그 · Live Activity</div>
+  <div class="log-card">
+    <div class="log-updated" id="log-updated">로딩 중... (09:00 보고 후 업데이트)</div>
+    <div class="log-grid">
+      <div class="log-dept">
+        <div class="log-dept-head">📊 DAT — 보유 종목</div>
+        <div id="log-dat"><span class="log-line">데이터 대기중</span></div>
+      </div>
+      <div class="log-dept">
+        <div class="log-dept-head">📡 INF — 기사 수집</div>
+        <div id="log-inf"><span class="log-line">데이터 대기중</span></div>
+      </div>
+      <div class="log-dept">
+        <div class="log-dept-head">🔍 AP — 경보 현황</div>
+        <div id="log-ap"><span class="log-line">데이터 대기중</span></div>
+      </div>
+      <div class="log-dept">
+        <div class="log-dept-head">🎨 DES — 홈페이지</div>
+        <div id="log-des"><span class="log-line">데이터 대기중</span></div>
+      </div>
     </div>
   </div>
 
@@ -608,6 +657,68 @@
   }
   updateClock();
   setInterval(updateClock, 1000);
+
+  // 활동 로그 로드
+  async function loadActivityLog() {
+    try {
+      const r = await fetch('activity_log.json?t=' + Date.now());
+      if (!r.ok) throw new Error('no log');
+      const d = await r.json();
+
+      document.getElementById('log-updated').textContent = '마지막 업데이트: ' + (d.updated || '—');
+
+      // DAT — 주가
+      const datEl = document.getElementById('log-dat');
+      if (d.portfolio && d.portfolio.length) {
+        datEl.innerHTML = d.portfolio.map(p => {
+          const cls = p.chg >= 0 ? 'up' : 'dn';
+          const sign = p.chg >= 0 ? '+' : '';
+          return `<div class="log-row">
+            <span class="log-sym">${p.sym}</span>
+            <span class="log-chg ${cls}">${sign}${p.chg.toFixed(2)}%</span>
+            <span class="log-price">$${p.price.toFixed(2)}</span>
+          </div>`;
+        }).join('');
+      } else {
+        datEl.innerHTML = '<span class="log-line">주가 데이터 없음</span>';
+      }
+
+      // INF — 기사 수집
+      const infEl = document.getElementById('log-inf');
+      if (d.inf) {
+        const kr = d.inf.kr_count || 0;
+        const us = d.inf.us_count || 0;
+        infEl.innerHTML = `
+          <div class="log-line">🇰🇷 한국 <b style="color:#e0e6f0">${kr}건</b></div>
+          <div class="log-line" style="margin-bottom:4px">${(d.inf.kr_sources||[]).join(', ') || '—'}</div>
+          <div class="log-line">🇺🇸 미국 <b style="color:#e0e6f0">${us}건</b></div>
+          <div class="log-line">${(d.inf.us_sources||[]).join(', ') || '—'}</div>`;
+      }
+
+      // AP — 경보
+      const apEl = document.getElementById('log-ap');
+      const alerts = d.ap && d.ap.alerts ? d.ap.alerts : [];
+      if (alerts.length) {
+        apEl.innerHTML = alerts.map(a => {
+          const label = a.includes('52high') ? '52주 고가 근접' : a.includes('52low') ? '52주 저가 근접' : a;
+          const sym   = a.split('_')[0];
+          return `<div class="log-alert">⚠️ ${sym}: ${label}</div>`;
+        }).join('');
+      } else {
+        apEl.innerHTML = '<div class="log-ok">✓ 전 종목 이상 없음</div>';
+      }
+
+      // DES — 홈페이지
+      document.getElementById('log-des').innerHTML =
+        `<div class="log-ok">✓ 활동 로그 업로드 완료</div>
+         <div class="log-line">${d.updated || '—'}</div>`;
+
+    } catch(e) {
+      document.getElementById('log-updated').textContent = '09:00 보고 후 자동 업데이트됩니다';
+    }
+  }
+  loadActivityLog();
+  setInterval(loadActivityLog, 300000);
 
   // 환율 — 헤더 우측 상단만
   async function updateFX() {
