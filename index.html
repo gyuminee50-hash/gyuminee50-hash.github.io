@@ -210,28 +210,31 @@
     border: 1px solid rgba(201,168,76,0.15);
   }
 
-  /* FX WIDGET */
-  .fx-card {
-    background: var(--dark2); border: 1px solid rgba(201,168,76,0.25);
-    border-radius: 16px; padding: 28px 32px;
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
-    margin-bottom: 48px; align-items: center;
+  /* HEADER FX */
+  .header-fx { font-size: 12px; color: var(--gold); font-weight: 700; letter-spacing: 1px; text-align: right; margin-top: 3px; }
+
+  /* FEAR & GREED GAUGE */
+  .fg-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 24px; margin-bottom: 48px;
   }
-  .fx-main { border-right: 1px solid rgba(255,255,255,0.06); padding-right: 24px; }
-  .fx-label { font-size: 11px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
-  .fx-rate { font-size: 42px; font-weight: 900; color: var(--text); letter-spacing: -1px; line-height: 1; }
-  .fx-rate .unit { font-size: 16px; font-weight: 400; color: var(--text-dim); margin-left: 4px; }
-  .fx-updated { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
-  .fx-change { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; margin-top: 6px; }
-  .fx-change.up { color: var(--red); }
-  .fx-change.dn { color: var(--green); }
-  .fx-calc { border-right: 1px solid rgba(255,255,255,0.06); padding-right: 24px; }
-  .fx-calc-title { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 14px; }
-  .fx-calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
-  .fx-calc-row .usd { color: var(--text-dim); }
-  .fx-calc-row .krw { color: var(--text); font-weight: 700; }
-  .fx-note { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
-  .fx-note strong { color: var(--gold); display: block; margin-bottom: 6px; font-size: 11px; letter-spacing: 1px; }
+  .fg-wrap { position: relative; width: 100%; max-width: 360px; margin: 0 auto; }
+  #fg-canvas { width: 100%; height: 186px; display: block; }
+  .fg-overlay {
+    position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+    text-align: center; pointer-events: none; white-space: nowrap;
+  }
+  .fg-num { font-size: 48px; font-weight: 900; line-height: 1; }
+  .fg-lbl { font-size: 14px; color: var(--text-dim); margin-top: 2px; }
+  .fg-scale {
+    display: flex; justify-content: space-between;
+    padding: 4px 10px 0; font-size: 10px; font-weight: 600;
+  }
+  .fg-prev {
+    text-align: center; font-size: 12px; color: var(--text-dim);
+    margin-top: 10px; padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
 
   /* FOOTER */
   footer {
@@ -256,12 +259,15 @@
     <nav>
       <a href="#departments">부서</a>
       <a href="#portfolio">포트폴리오</a>
-      <a href="#fx">환율</a>
+      <a href="#feargreed">공포탐욕</a>
       <a href="#proposals" class="active">업그레이드 제안</a>
-    </nav>shp
-    <div id="clock">
-      <span id="time">--:--:--</span>
-      <span id="date">----년 --월 --일</span>
+    </nav>
+    <div style="text-align:right;">
+      <div id="clock">
+        <span id="time">--:--:--</span>
+        <span id="date">----년 --월 --일</span>
+      </div>
+      <div class="header-fx">USD/KRW <span id="header-fx-val">---</span>원</div>
     </div>
   </div>
 </header>
@@ -272,7 +278,6 @@
   <div class="status-item"><strong>18:00</strong>일일 리포트</div>
   <div class="status-item"><strong>4</strong>활성 부서</div>
   <div class="status-item"><strong>5</strong>모니터링 종목</div>
-  <div class="status-item"><strong id="fx-status-bar">--</strong>원/달러</div>
 </div>
 
 <div class="hero">
@@ -414,27 +419,23 @@
     </div>
   </div>
 
-  <div id="fx" class="section-title">실시간 환율 · Live FX</div>
-  <div class="fx-card">
-    <div class="fx-main">
-      <div class="fx-label">USD / KRW</div>
-      <div class="fx-rate"><span id="usd-krw-val">---</span><span class="unit">원</span></div>
-      <div id="fx-change" class="fx-change"></div>
-      <div class="fx-updated" id="fx-time">업데이트 중...</div>
+  <div id="feargreed" class="section-title">📊 공포탐욕지수 · Fear &amp; Greed Index</div>
+  <div class="fg-card">
+    <div class="fg-wrap">
+      <canvas id="fg-canvas"></canvas>
+      <div class="fg-overlay">
+        <div class="fg-num" id="fg-num">—</div>
+        <div class="fg-lbl" id="fg-lbl">로딩 중...</div>
+      </div>
     </div>
-    <div class="fx-calc">
-      <div class="fx-calc-title">💵 수익률 환산 참고</div>
-      <div class="fx-calc-row"><span class="usd">$1,000</span><span class="krw" id="calc-1k">---</span></div>
-      <div class="fx-calc-row"><span class="usd">$5,000</span><span class="krw" id="calc-5k">---</span></div>
-      <div class="fx-calc-row"><span class="usd">$10,000</span><span class="krw" id="calc-10k">---</span></div>
-      <div class="fx-calc-row"><span class="usd">$50,000</span><span class="krw" id="calc-50k">---</span></div>
+    <div class="fg-scale">
+      <span style="color:#ef4444">극단적 공포</span>
+      <span style="color:#f97316">공포</span>
+      <span style="color:#eab308">중립</span>
+      <span style="color:#84cc16">탐욕</span>
+      <span style="color:#22c55e">극단적 탐욕</span>
     </div>
-    <div class="fx-note">
-      <strong>📌 활용 안내</strong>
-      미국 주식 수익이 달러로 발생할 때 원화 환산 기준값으로 활용하세요.
-      환율이 오를수록 원화 기준 수익률이 높아집니다.<br><br>
-      5분마다 자동 갱신됩니다.
-    </div>
+    <div class="fg-prev" id="fg-prev"></div>
   </div>
 
   <div id="proposals" class="section-title">업그레이드 제안 · Proposals</div>
@@ -608,37 +609,122 @@
   updateClock();
   setInterval(updateClock, 1000);
 
-  // 환율 위젯
-  let prevKrw = null;
+  // 환율 — 헤더 우측 상단만
   async function updateFX() {
     try {
       const r = await fetch('https://open.er-api.com/v6/latest/USD');
       const data = await r.json();
       const krw = Math.round(data.rates.KRW);
-      const fmt = n => n.toLocaleString('ko-KR');
-
-      document.getElementById('usd-krw-val').textContent = fmt(krw);
-      document.getElementById('fx-status-bar').textContent = fmt(krw);
-      document.getElementById('calc-1k').textContent  = fmt(Math.round(krw * 1000 / 10000)) + '만원';
-      document.getElementById('calc-5k').textContent  = fmt(Math.round(krw * 5000 / 10000)) + '만원';
-      document.getElementById('calc-10k').textContent = fmt(Math.round(krw * 10000 / 10000)) + '만원';
-      document.getElementById('calc-50k').textContent = fmt(Math.round(krw * 50000 / 10000)) + '만원';
-      document.getElementById('fx-time').textContent  = '갱신: ' + new Date().toLocaleTimeString('ko-KR');
-
-      const chg = document.getElementById('fx-change');
-      if (prevKrw !== null && krw !== prevKrw) {
-        const diff = krw - prevKrw;
-        chg.textContent = (diff > 0 ? '▲ +' : '▼ ') + fmt(Math.abs(diff)) + '원';
-        chg.className = 'fx-change ' + (diff > 0 ? 'up' : 'dn');
-      }
-      prevKrw = krw;
-    } catch(e) {
-      document.getElementById('usd-krw-val').textContent = '연결 오류';
-      document.getElementById('fx-time').textContent = '네트워크 확인 필요';
-    }
+      document.getElementById('header-fx-val').textContent = krw.toLocaleString('ko-KR');
+    } catch(e) {}
   }
   updateFX();
   setInterval(updateFX, 300000);
+
+  // 공포탐욕 게이지
+  const FG_SEGS = [
+    {v1:0,    v2:0.25, color:'#ef4444', label:'극단적 공포'},
+    {v1:0.25, v2:0.45, color:'#f97316', label:'공포'},
+    {v1:0.45, v2:0.55, color:'#eab308', label:'중립'},
+    {v1:0.55, v2:0.75, color:'#84cc16', label:'탐욕'},
+    {v1:0.75, v2:1.00, color:'#22c55e', label:'극단적 탐욕'},
+  ];
+
+  function fgColor(v) {
+    for (const s of FG_SEGS) if (v/100 <= s.v2) return s.color;
+    return '#22c55e';
+  }
+  function fgLabel(v) {
+    for (const s of FG_SEGS) if (v/100 <= s.v2) return s.label;
+    return '극단적 탐욕';
+  }
+
+  function drawFG(canvas, value) {
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth || 320;
+    const H = canvas.offsetHeight || 186;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const cx = W / 2, cy = H * 0.87;
+    const r  = Math.min(W * 0.41, H * 0.78);
+    const lw = r * 0.21;
+
+    // angle: value 0→left(π), value 1→right(2π), CW through top
+    const toA = v => Math.PI + Math.PI * v;
+
+    // background track
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI, 2*Math.PI, false);
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = lw; ctx.lineCap = 'butt'; ctx.stroke();
+
+    // colored segments
+    FG_SEGS.forEach(s => {
+      const gap = 0.013;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, toA(s.v1+gap), toA(s.v2-gap), false);
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = lw; ctx.stroke();
+    });
+
+    // tick marks at 0,25,50,75,100
+    [0, 0.25, 0.5, 0.75, 1].forEach(v => {
+      const a = toA(v);
+      ctx.beginPath();
+      ctx.moveTo(cx + (r-lw*0.65)*Math.cos(a), cy + (r-lw*0.65)*Math.sin(a));
+      ctx.lineTo(cx + (r+lw*0.65)*Math.cos(a), cy + (r+lw*0.65)*Math.sin(a));
+      ctx.strokeStyle = '#0d1b2a'; ctx.lineWidth = 3; ctx.stroke();
+    });
+
+    // needle
+    const norm = Math.max(0, Math.min(100, value)) / 100;
+    const na   = toA(norm);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + r*0.72*Math.cos(na), cy + r*0.72*Math.sin(na));
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, lw*0.28, 0, 2*Math.PI);
+    ctx.fillStyle = '#fff'; ctx.fill();
+  }
+
+  async function updateFearGreed() {
+    try {
+      const url = 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata';
+      const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+      const res  = await fetch(proxy);
+      const json = await res.json();
+      const obj  = JSON.parse(json.contents);
+      const cur  = Math.round(obj.fear_and_greed.score);
+      const prev = obj.fear_and_greed_historical?.previous_close
+                   ? Math.round(obj.fear_and_greed_historical.previous_close.score) : null;
+      const wk   = obj.fear_and_greed_historical?.one_week_ago
+                   ? Math.round(obj.fear_and_greed_historical.one_week_ago.score) : null;
+
+      const canvas = document.getElementById('fg-canvas');
+      drawFG(canvas, cur);
+
+      const numEl = document.getElementById('fg-num');
+      numEl.textContent = cur;
+      numEl.style.color = fgColor(cur);
+      document.getElementById('fg-lbl').textContent = fgLabel(cur);
+
+      let prevTxt = '';
+      if (prev !== null) prevTxt += `전일 ${prev} (${fgLabel(prev)})`;
+      if (wk  !== null) prevTxt += `&nbsp;&nbsp;|&nbsp;&nbsp;1주전 ${wk} (${fgLabel(wk)})`;
+      document.getElementById('fg-prev').innerHTML = prevTxt;
+    } catch(e) {
+      const canvas = document.getElementById('fg-canvas');
+      drawFG(canvas, 50);
+      document.getElementById('fg-num').textContent = '—';
+      document.getElementById('fg-lbl').textContent = 'API 연결 대기중';
+    }
+  }
+  updateFearGreed();
+  setInterval(updateFearGreed, 600000);
 
   // 부드러운 스크롤 + nav 활성화
   document.querySelectorAll('nav a[href^="#"]').forEach(link => {
@@ -652,7 +738,7 @@
   });
 
   // 스크롤 위치에 따라 nav 활성화 업데이트
-  const sections = ['departments','portfolio','fx','proposals'];
+  const sections = ['departments','portfolio','feargreed','proposals'];
   window.addEventListener('scroll', () => {
     let current = '';
     sections.forEach(id => {
