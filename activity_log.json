@@ -1,5 +1,12 @@
 {
-  "updated": "2026-06-01 21:48",
-  "vix": null,
-  "fg": null
+  "vix": {
+    "value": 15.83,
+    "state": "🙂 보통 이하"
+  },
+  "fg": {
+    "value": 59,
+    "label": "greed",
+    "prev": null
+  },
+  "updated": "2026-06-01 21:51"
 }
