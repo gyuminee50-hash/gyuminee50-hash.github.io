@@ -244,6 +244,17 @@
   .sector-bust-row { display: flex; gap: 16px; flex-wrap: wrap; }
   .sector-bust-item { font-size: 12px; color: var(--text-dim); }
 
+  /* VIX */
+  .vix-row {
+    display: flex; align-items: center; justify-content: center; gap: 32px;
+    padding: 14px 0 6px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 12px;
+  }
+  .vix-box { text-align: center; }
+  .vix-label { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .vix-val { font-size: 32px; font-weight: 900; line-height: 1; }
+  .vix-state { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+  .vix-divider { width: 1px; height: 50px; background: rgba(255,255,255,0.07); }
+
   /* FEAR & GREED GAUGE */
   .fg-card {
     background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
@@ -314,11 +325,9 @@
   </div>
   <div style="display:flex;align-items:center;gap:24px;">
     <nav>
-      <a href="#departments">부서</a>
-      <a href="#portfolio">포트폴리오</a>
+      <a href="#activitylog">활동로그</a>
       <a href="#sectoranalysis">섹터분석</a>
       <a href="#feargreed">공포탐욕</a>
-      <a href="#proposals" class="active">업그레이드 제안</a>
     </nav>
     <div style="text-align:right;">
       <div id="clock">
@@ -416,19 +425,7 @@
   </div>
 
   <div class="section-title">운영 스케줄 · Daily Schedule</div>
-  <div class="ops-grid">
-    <div class="ops-card">
-      <h3>오늘의 브리핑 미리보기</h3>
-      <div class="sub">INF → DAT → AP → 텔레그램 발송</div>
-      <div class="briefing-preview">
-        <div class="bp-item"><span class="bp-flag">🇰🇷</span>한국은행 금리 결정 및 KOSPI 시장 흐름 분석</div>
-        <div class="bp-item"><span class="bp-flag">🇰🇷</span>국내 수출지표 및 원달러 환율 동향</div>
-        <div class="bp-item"><span class="bp-flag">🇰🇷</span>코스피·코스닥 주요 섹터 뉴스</div>
-        <div class="bp-item"><span class="bp-flag">🇺🇸</span>S&P500·나스닥 지수 흐름 및 연준 동향</div>
-        <div class="bp-item"><span class="bp-flag">🇺🇸</span>TSMC·MU·IEMG 보유 종목 직접 관련 뉴스</div>
-        <div class="bp-item"><span class="bp-flag">🇺🇸</span>반도체·AI 섹터 핵심 이슈</div>
-      </div>
-    </div>
+  <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>일일 스케줄</h3>
       <div class="sub">자동화 운영 타임라인</div>
@@ -472,33 +469,6 @@
     </div>
   </div>
 
-  <div id="portfolio" class="section-title">모니터링 포트폴리오 · Portfolio Watch</div>
-  <div class="portfolio-grid">
-    <div class="stock-card">
-      <div><div class="stock-ticker">S&P 500</div><div class="stock-name">미국 대형주 지수</div></div>
-      <div class="stock-badge">모니터링</div>
-    </div>
-    <div class="stock-card">
-      <div><div class="stock-ticker">NASDAQ</div><div class="stock-name">미국 기술주 지수</div></div>
-      <div class="stock-badge">모니터링</div>
-    </div>
-    <div class="stock-card">
-      <div><div class="stock-ticker">TSMC</div><div class="stock-name">Taiwan Semiconductor</div></div>
-      <div class="stock-badge">보유</div>
-    </div>
-    <div class="stock-card">
-      <div><div class="stock-ticker">MU</div><div class="stock-name">Micron Technology</div></div>
-      <div class="stock-badge">보유</div>
-    </div>
-    <div class="stock-card">
-      <div><div class="stock-ticker">GGLL</div><div class="stock-name">Alphabet 2x Leverage</div></div>
-      <div class="stock-badge">보유</div>
-    </div>
-    <div class="stock-card">
-      <div><div class="stock-ticker">IEMG</div><div class="stock-name">iShares Core MSCI EM</div></div>
-      <div class="stock-badge">보유</div>
-    </div>
-  </div>
 
   <div id="sectoranalysis" class="section-title">📈 유망 섹터 분석 · ROY Sector Pick</div>
   <div class="sector-card">
@@ -508,11 +478,23 @@
 
   <div id="feargreed" class="section-title">📊 공포탐욕지수 · Fear &amp; Greed Index</div>
   <div class="fg-card">
+    <div class="vix-row">
+      <div class="vix-box">
+        <div class="vix-label">VIX 공포지수</div>
+        <div class="vix-val" id="vix-val">—</div>
+        <div class="vix-state" id="vix-state">로딩 중</div>
+      </div>
+      <div class="vix-divider"></div>
+      <div class="vix-box">
+        <div class="vix-label">CNN 탐욕지수</div>
+        <div class="fg-num" id="fg-num" style="font-size:32px">—</div>
+        <div class="fg-lbl" id="fg-lbl">로딩 중...</div>
+      </div>
+    </div>
     <div class="fg-wrap">
       <canvas id="fg-canvas"></canvas>
       <div class="fg-overlay">
-        <div class="fg-num" id="fg-num">—</div>
-        <div class="fg-lbl" id="fg-lbl">로딩 중...</div>
+        <div style="font-size:11px;color:var(--text-dim);letter-spacing:2px">FEAR &amp; GREED</div>
       </div>
     </div>
     <div class="fg-scale">
@@ -525,154 +507,6 @@
     <div class="fg-prev" id="fg-prev"></div>
   </div>
 
-  <div id="proposals" class="section-title">업그레이드 제안 · Proposals</div>
-  <div class="proposal-header">
-    <p style="font-size:13px;color:var(--text-dim);">텔레그램에서 원하는 번호를 ROY에게 전달하면 즉시 실행합니다.</p>
-    <span class="badge">총 20개 제안</span>
-  </div>
-  <div class="proposal-grid">
-
-    <div class="proposal-card">
-      <div class="proposal-num">1</div>
-      <div class="proposal-title">NVDA(엔비디아) 모니터링 추가</div>
-      <div class="proposal-desc">반도체·AI 핵심 종목. TSMC·MU와 섹터 연동성 높음.</div>
-      <span class="proposal-tag">종목 확장</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">2</div>
-      <div class="proposal-title">공포탐욕지수 브리핑 포함</div>
-      <div class="proposal-desc">CNN Fear &amp; Greed Index 매일 수치화. 시장 심리 선행 지표.</div>
-      <span class="proposal-tag">브리핑 강화</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">3</div>
-      <div class="proposal-title">매주 월요일 주간 시장 전망 요약</div>
-      <div class="proposal-desc">한 주 전략을 미리 정리해드리는 주간 브리핑.</div>
-      <span class="proposal-tag">주간 리포트</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">4</div>
-      <div class="proposal-title">홈페이지 실시간 환율 위젯 추가</div>
-      <div class="proposal-desc">원/달러 환율 자동 표시. 수익률 환산에 즉시 활용.</div>
-      <span class="proposal-tag">홈페이지</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">5</div>
-      <div class="proposal-title">SOXL 반도체 섹터 흐름 모니터링</div>
-      <div class="proposal-desc">TSMC·MU 보유 중 → 반도체 3배 레버리지 추적 강화.</div>
-      <span class="proposal-tag">종목 확장</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">6</div>
-      <div class="proposal-title">미국 경제 캘린더 알림</div>
-      <div class="proposal-desc">FOMC·CPI·PPI 발표일 사전 알림. 이벤트 전날 브리핑 포함.</div>
-      <span class="proposal-tag">이벤트 알림</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">7</div>
-      <div class="proposal-title">저녁 9시 미국 개장 전 속보</div>
-      <div class="proposal-desc">뉴욕 개장 30분 전 핵심 이슈 1-2건 발송.</div>
-      <span class="proposal-tag">브리핑 확장</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">8</div>
-      <div class="proposal-title">포트폴리오 주간 수익률 트래킹</div>
-      <div class="proposal-desc">매주 월요일 6개 종목 주간 흐름 요약 및 성과 정리.</div>
-      <span class="proposal-tag">성과 관리</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">9</div>
-      <div class="proposal-title">신흥국 주요 이슈 섹션 추가</div>
-      <div class="proposal-desc">IEMG 보유 → 인도·베트남·브라질 동향 주 1회 요약.</div>
-      <span class="proposal-tag">브리핑 강화</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">10</div>
-      <div class="proposal-title">홈페이지 부서별 활동 로그 표시</div>
-      <div class="proposal-desc">DES가 각 부서 일일 작업 내역 실시간 표시.</div>
-      <span class="proposal-tag">홈페이지</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">11</div>
-      <div class="proposal-title">52주 고가/저가 도달 즉시 알림</div>
-      <div class="proposal-desc">보유 종목이 52주 고점·저점 터치 시 텔레그램 즉시 알림.</div>
-      <span class="proposal-tag">이벤트 알림</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">12</div>
-      <div class="proposal-title">미국 실적 시즌 일정 포함</div>
-      <div class="proposal-desc">TSMC·MU 어닝 발표일 사전 안내 및 전날 주의 알림.</div>
-      <span class="proposal-tag">이벤트 알림</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">13</div>
-      <div class="proposal-title">브리핑 투자 시사점 한 줄 추가</div>
-      <div class="proposal-desc">각 기사 하단에 DAT가 분석한 포트폴리오 영향 한 줄 추가.</div>
-      <span class="proposal-tag">브리핑 강화</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">14</div>
-      <div class="proposal-title">월간 투자 인사이트 리포트</div>
-      <div class="proposal-desc">매월 1일 지난달 시장 흐름·종목 분석 요약 발송.</div>
-      <span class="proposal-tag">월간 리포트</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">15</div>
-      <div class="proposal-title">GGLL 레버리지 리스크 지표 추가</div>
-      <div class="proposal-desc">Alphabet 2배 레버리지 → 변동성 지표 함께 제공.</div>
-      <span class="proposal-tag">리스크 관리</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">16</div>
-      <div class="proposal-title">아시아 장 선행 지표 브리핑 추가</div>
-      <div class="proposal-desc">일본·홍콩 시장 흐름을 국내장 개장 전 요약.</div>
-      <span class="proposal-tag">브리핑 강화</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">17</div>
-      <div class="proposal-title">S&amp;P500 섹터별 등락 요약 추가</div>
-      <div class="proposal-desc">11개 섹터 중 상위/하위 섹터를 매일 브리핑에 포함.</div>
-      <span class="proposal-tag">브리핑 강화</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">18</div>
-      <div class="proposal-title">VIX 지수 모니터링 추가</div>
-      <div class="proposal-desc">시장 공포지수 VIX 임계값 초과 시 즉시 알림.</div>
-      <span class="proposal-tag">이벤트 알림</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">19</div>
-      <div class="proposal-title">채권 금리 동향 섹션 추가</div>
-      <div class="proposal-desc">미국 10년물 국채 금리 동향. 주식 밸류에이션 영향 분석.</div>
-      <span class="proposal-tag">매크로</span>
-    </div>
-
-    <div class="proposal-card">
-      <div class="proposal-num">20</div>
-      <div class="proposal-title">달러 인덱스(DXY) 추적 추가</div>
-      <div class="proposal-desc">달러 강세/약세가 IEMG·신흥국 ETF에 미치는 영향 분석.</div>
-      <span class="proposal-tag">매크로</span>
-    </div>
-
-  </div>
 
 </main>
 
@@ -926,6 +760,34 @@
   }
   updateFearGreed();
   setInterval(updateFearGreed, 600000);
+
+  // VIX 공포지수
+  async function updateVIX() {
+    try {
+      const url = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d';
+      const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+      const r = await fetch(proxy);
+      const j = await r.json();
+      const obj = JSON.parse(j.contents);
+      const closes = obj.chart.result[0].indicators.quote[0].close;
+      const vix = closes[closes.length - 1];
+      if (!vix) throw new Error('no vix');
+
+      const el  = document.getElementById('vix-val');
+      const st  = document.getElementById('vix-state');
+      el.textContent = vix.toFixed(1);
+
+      if (vix < 15)      { el.style.color='#22c55e'; st.textContent='😌 안정'; }
+      else if (vix < 20) { el.style.color='#84cc16'; st.textContent='🙂 보통 이하'; }
+      else if (vix < 25) { el.style.color='#eab308'; st.textContent='😐 보통'; }
+      else if (vix < 30) { el.style.color='#f97316'; st.textContent='😟 경계'; }
+      else               { el.style.color='#ef4444'; st.textContent='😱 위험'; }
+    } catch(e) {
+      document.getElementById('vix-val').textContent = '—';
+    }
+  }
+  updateVIX();
+  setInterval(updateVIX, 600000);
 
   // 부드러운 스크롤 + nav 활성화
   document.querySelectorAll('nav a[href^="#"]').forEach(link => {
