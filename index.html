@@ -213,6 +213,37 @@
   /* HEADER FX */
   .header-fx { font-size: 12px; color: var(--gold); font-weight: 700; letter-spacing: 1px; text-align: right; margin-top: 3px; }
 
+  /* SECTOR ANALYSIS */
+  .sector-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 24px; margin-bottom: 48px;
+  }
+  .sector-updated { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; letter-spacing: 1px; }
+  .sector-item {
+    padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .sector-item:last-child { border-bottom: none; }
+  .sector-row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .sector-medal { font-size: 18px; }
+  .sector-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .sector-link { font-size: 11px; color: var(--gold); font-weight: 700;
+    background: rgba(201,168,76,0.1); border-radius: 4px; padding: 2px 6px; }
+  .sector-perfs { display: flex; gap: 12px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; padding-left: 26px; }
+  .sector-perf-val { font-weight: 700; }
+  .sector-stocks { display: flex; gap: 10px; padding-left: 26px; margin-bottom: 8px; }
+  .sector-stock {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px; padding: 6px 12px; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sector-stock-sym { font-weight: 700; color: var(--text); }
+  .sector-stock-price { color: var(--text-dim); font-size: 11px; }
+  .sector-rec { font-size: 12px; color: var(--text-dim); padding-left: 26px; line-height: 1.5; }
+  .sector-bust { padding: 12px 0 0; }
+  .sector-bust-title { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 8px; }
+  .sector-bust-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .sector-bust-item { font-size: 12px; color: var(--text-dim); }
+
   /* FEAR & GREED GAUGE */
   .fg-card {
     background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
@@ -285,6 +316,7 @@
     <nav>
       <a href="#departments">부서</a>
       <a href="#portfolio">포트폴리오</a>
+      <a href="#sectoranalysis">섹터분석</a>
       <a href="#feargreed">공포탐욕</a>
       <a href="#proposals" class="active">업그레이드 제안</a>
     </nav>
@@ -466,6 +498,12 @@
       <div><div class="stock-ticker">IEMG</div><div class="stock-name">iShares Core MSCI EM</div></div>
       <div class="stock-badge">보유</div>
     </div>
+  </div>
+
+  <div id="sectoranalysis" class="section-title">📈 유망 섹터 분석 · ROY Sector Pick</div>
+  <div class="sector-card">
+    <div class="sector-updated" id="sector-updated">매주 일요일 08:30 자동 업데이트</div>
+    <div id="sector-list"><div style="color:var(--text-dim);font-size:13px">일요일 분석 후 표시됩니다</div></div>
   </div>
 
   <div id="feargreed" class="section-title">📊 공포탐욕지수 · Fear &amp; Greed Index</div>
@@ -658,6 +696,58 @@
   updateClock();
   setInterval(updateClock, 1000);
 
+  // 섹터 분석 로드
+  async function loadSectorData() {
+    try {
+      const r = await fetch('sector_data.json?t=' + Date.now());
+      if (!r.ok) throw new Error('no data');
+      const d = await r.json();
+      document.getElementById('sector-updated').textContent = '분석 기준: ' + (d.updated || '—');
+
+      const medals = ['🥇','🥈','🥉','4️⃣'];
+      const listEl = document.getElementById('sector-list');
+      let html = '';
+
+      (d.sectors || []).forEach((s, i) => {
+        const fw1 = (s.w1 >= 0 ? '+' : '') + s.w1.toFixed(1) + '%';
+        const fm1 = (s.m1 >= 0 ? '+' : '') + s.m1.toFixed(1) + '%';
+        const fm3 = (s.m3 >= 0 ? '+' : '') + s.m3.toFixed(1) + '%';
+        const w1c = s.w1 >= 0 ? 'var(--green)' : 'var(--red)';
+        const badge = s.link ? `<span class="sector-link">🔗 ${s.link} 연계</span>` : '';
+
+        let stocksHtml = (s.stocks || []).map(st => {
+          const chgC = st.chg >= 0 ? 'var(--green)' : 'var(--red)';
+          const sc = (st.chg >= 0 ? '+' : '') + st.chg.toFixed(2) + '%';
+          return `<div class="sector-stock">
+            <span class="sector-stock-sym">${st.sym}</span>
+            <span style="color:${chgC};font-weight:700">${sc}</span>
+            <span class="sector-stock-price">$${st.price.toFixed(1)}</span>
+          </div>`;
+        }).join('');
+
+        html += `<div class="sector-item">
+          <div class="sector-row1">
+            <span class="sector-medal">${medals[i]||''}</span>
+            <span class="sector-name">${s.name} <span style="color:var(--text-dim);font-size:12px">(${s.etf})</span></span>
+            ${badge}
+          </div>
+          <div class="sector-perfs">
+            <span>1주 <span class="sector-perf-val" style="color:${w1c}">${fw1}</span></span>
+            <span>1달 <span class="sector-perf-val">${fm1}</span></span>
+            <span>3달 <span class="sector-perf-val">${fm3}</span></span>
+          </div>
+          <div class="sector-stocks">${stocksHtml}</div>
+          <div class="sector-rec">💬 ${s.rec || '—'}</div>
+        </div>`;
+      });
+
+      listEl.innerHTML = html || '<div style="color:var(--text-dim);font-size:13px">데이터 없음</div>';
+    } catch(e) {
+      document.getElementById('sector-updated').textContent = '일요일 08:30 분석 후 자동 업데이트됩니다';
+    }
+  }
+  loadSectorData();
+
   // 활동 로그 로드
   async function loadActivityLog() {
     try {
@@ -849,7 +939,7 @@
   });
 
   // 스크롤 위치에 따라 nav 활성화 업데이트
-  const sections = ['departments','portfolio','feargreed','proposals'];
+  const sections = ['departments','portfolio','sectoranalysis','feargreed','proposals'];
   window.addEventListener('scroll', () => {
     let current = '';
     sections.forEach(id => {
