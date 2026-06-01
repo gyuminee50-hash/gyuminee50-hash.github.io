@@ -41,6 +41,51 @@ US_FEEDS = [
 ]
 
 
+def get_vix():
+    """VIX 공포지수 조회"""
+    try:
+        import yfinance as yf
+        hist = yf.Ticker('^VIX').history(period='2d')
+        val  = float(hist['Close'].iloc[-1])
+        if val < 15:   state = '😌 안정'
+        elif val < 20: state = '🙂 보통 이하'
+        elif val < 25: state = '😐 보통'
+        elif val < 30: state = '😟 경계'
+        else:          state = '😱 위험'
+        return {'value': round(val, 2), 'state': state}
+    except Exception as e:
+        print(f'  [VIX 조회 실패] {e}')
+        return None
+
+
+def get_fear_greed():
+    """CNN 공포탐욕지수 조회"""
+    try:
+        url = 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Referer': 'https://edition.cnn.com/',
+            'Origin':  'https://edition.cnn.com',
+        }
+        r   = requests.get(url, timeout=15, headers=headers)
+        obj = r.json()
+        cur = round(obj['fear_and_greed']['score'])
+        rating_map = {
+            'extreme fear': '극단적 공포', 'fear': '공포',
+            'neutral': '중립', 'greed': '탐욕', 'extreme greed': '극단적 탐욕'
+        }
+        label = rating_map.get(obj['fear_and_greed']['rating'].lower(), obj['fear_and_greed']['rating'])
+        prev  = None
+        hist  = obj.get('fear_and_greed_historical', {})
+        if hist.get('previous_close'):
+            prev = round(hist['previous_close']['score'])
+        return {'value': cur, 'label': label, 'prev': prev}
+    except Exception as e:
+        print(f'  [F&G 조회 실패] {e}')
+        return None
+
+
 def get_portfolio():
     """실제 주가 데이터 조회"""
     try:
@@ -166,6 +211,10 @@ def main():
     print('  [AP] 가격 경보 확인 중...')
     alerts = get_alert_status()
 
+    print('  [DAT] VIX + 공포탐욕지수 조회 중...')
+    vix = get_vix()
+    fg  = get_fear_greed()
+
     # 활동 로그 저장 + 홈페이지 push
     log_data = {
         'updated':   now.strftime('%Y-%m-%d %H:%M'),
@@ -176,7 +225,9 @@ def main():
             'kr_count': kr_count, 'kr_sources': kr_sources,
             'us_count': us_count, 'us_sources': us_sources,
         },
-        'ap': {'alerts': alerts},
+        'ap':  {'alerts': alerts},
+        'vix': vix,
+        'fg':  fg,
     }
     push_activity_log(log_data)
 

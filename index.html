@@ -637,6 +637,27 @@
         `<div class="log-ok">✓ 활동 로그 업로드 완료</div>
          <div class="log-line">${d.updated || '—'}</div>`;
 
+      // VIX + Fear & Greed — activity_log에서 읽기
+      if (d.vix) {
+        const vEl = document.getElementById('vix-val');
+        const sEl = document.getElementById('vix-state');
+        vEl.textContent = d.vix.value;
+        sEl.textContent = d.vix.state;
+        const v = d.vix.value;
+        vEl.style.color = v < 15 ? '#22c55e' : v < 20 ? '#84cc16' : v < 25 ? '#eab308' : v < 30 ? '#f97316' : '#ef4444';
+      }
+      if (d.fg) {
+        const numEl = document.getElementById('fg-num');
+        numEl.textContent = d.fg.value;
+        numEl.style.color = fgColor(d.fg.value);
+        document.getElementById('fg-lbl').textContent = d.fg.label || '—';
+        const canvas = document.getElementById('fg-canvas');
+        drawFG(canvas, d.fg.value);
+        if (d.fg.prev !== null && d.fg.prev !== undefined) {
+          document.getElementById('fg-prev').textContent = `전일 ${d.fg.prev} (${fgLabel(d.fg.prev)})`;
+        }
+      }
+
     } catch(e) {
       document.getElementById('log-updated').textContent = '09:00 보고 후 자동 업데이트됩니다';
     }
@@ -760,34 +781,6 @@
   }
   updateFearGreed();
   setInterval(updateFearGreed, 600000);
-
-  // VIX 공포지수
-  async function updateVIX() {
-    try {
-      const url = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d';
-      const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-      const r = await fetch(proxy);
-      const j = await r.json();
-      const obj = JSON.parse(j.contents);
-      const closes = obj.chart.result[0].indicators.quote[0].close;
-      const vix = closes[closes.length - 1];
-      if (!vix) throw new Error('no vix');
-
-      const el  = document.getElementById('vix-val');
-      const st  = document.getElementById('vix-state');
-      el.textContent = vix.toFixed(1);
-
-      if (vix < 15)      { el.style.color='#22c55e'; st.textContent='😌 안정'; }
-      else if (vix < 20) { el.style.color='#84cc16'; st.textContent='🙂 보통 이하'; }
-      else if (vix < 25) { el.style.color='#eab308'; st.textContent='😐 보통'; }
-      else if (vix < 30) { el.style.color='#f97316'; st.textContent='😟 경계'; }
-      else               { el.style.color='#ef4444'; st.textContent='😱 위험'; }
-    } catch(e) {
-      document.getElementById('vix-val').textContent = '—';
-    }
-  }
-  updateVIX();
-  setInterval(updateVIX, 600000);
 
   // 부드러운 스크롤 + nav 활성화
   document.querySelectorAll('nav a[href^="#"]').forEach(link => {
