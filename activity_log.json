@@ -1,39 +1,39 @@
 {
-  "updated": "2026-06-05 09:00",
+  "updated": "2026-06-06 09:00",
   "portfolio": [
     {
       "sym": "TSM",
       "name": "TSMC",
-      "price": 444.92,
-      "chg": 1.88
+      "price": 415.17,
+      "chg": -6.69
     },
     {
       "sym": "MU",
       "name": "Micron",
-      "price": 996.0,
-      "chg": -7.74
+      "price": 864.01,
+      "chg": -13.25
     },
     {
       "sym": "GGLL",
       "name": "Alphabet 2x",
-      "price": 125.95,
-      "chg": 7.06
+      "price": 123.33,
+      "chg": -2.08
     },
     {
       "sym": "IEMG",
       "name": "신흥국 ETF",
-      "price": 84.01,
-      "chg": -0.98
+      "price": 78.63,
+      "chg": -6.4
     },
     {
       "sym": "SPY",
       "name": "S&P500",
-      "price": 757.09,
-      "chg": 0.38
+      "price": 737.55,
+      "chg": -2.58
     }
   ],
   "inf": {
-    "kr_count": 21,
+    "kr_count": 24,
     "kr_sources": [
       "연합뉴스"
     ],
@@ -45,18 +45,15 @@
     ]
   },
   "ap": {
-    "alerts": [
-      "TSM_52high",
-      "SPY_52high"
-    ]
+    "alerts": []
   },
   "vix": {
-    "value": 15.4,
-    "state": "🙂 보통 이하"
+    "value": 21.51,
+    "state": "😐 보통"
   },
   "fg": {
-    "value": 55,
-    "label": "중립",
+    "value": 42,
+    "label": "공포",
     "prev": null
   }
 }
