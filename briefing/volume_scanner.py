@@ -19,9 +19,32 @@ with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
 
 
-# ── S&P 500 리스트 (당일 캐시) ──────────────────────────────────────
-def get_sp500():
-    """Wikipedia에서 S&P 500 티커 가져오기. 당일 캐시 사용."""
+# ── 스캔 유니버스: S&P 500 + 나스닥 100 (당일 캐시) ──────────────────
+_NDX100_FALLBACK = [
+    'AAPL','MSFT','NVDA','AMZN','META','GOOGL','GOOG','TSLA','AVGO','COST',
+    'NFLX','ASML','AMD','INTC','QCOM','INTU','AMAT','CSCO','TXN','MRVL',
+    'ADBE','MU','LRCX','PANW','KLAC','ADI','SNPS','CDNS','MELI','ISRG',
+    'REGN','GILD','VRTX','MDLZ','BKNG','ADP','SBUX','PYPL','ABNB','CRWD',
+    'DXCM','BIIB','IDXX','EA','FAST','GEHC','ODFL','CSGP','ON','TEAM',
+    'DLTR','VRSK','ANSS','ZS','PCAR','ROST','CPRT','NXPI','MNST','FTNT',
+    'MCHP','SIRI','ILMN','WBD','PARA','DDOG','SGEN','LCID','WDAY','OKTA',
+]
+
+_SP500_FALLBACK = [
+    'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','BRK-B',
+    'JPM','V','MA','LLY','XOM','UNH','JNJ','PG','HD','MRK','ABBV',
+    'TSM','MU','INTC','AMD','QCOM','ARM','AMAT','LRCX','KLAC','MRVL',
+    'GS','BAC','MS','WFC','AXP','BLK','C','SCHW','COF','USB',
+    'CVX','COP','NEE','SLB','OXY','PSX','MPC','VLO','EOG','PXD',
+    'WMT','COST','TGT','HD','LOW','NKE','MCD','SBUX','TJX','ROST',
+    'NFLX','DIS','CMCSA','T','VZ','CHTR','EA','TTWO','WBD',
+    'CAT','HON','DE','RTX','LMT','GE','UPS','BA','MMM','EMR',
+    'CRM','NOW','ADBE','ORCL','INTU','SNOW','PLTR','UBER','COIN',
+]
+
+
+def get_universe():
+    """S&P 500 + 나스닥 100 합집합 (중복 제거). 당일 캐시 사용."""
     today = date.today().isoformat()
     try:
         with open(UNIVERSE_CACHE, 'r') as f:
@@ -31,26 +54,35 @@ def get_sp500():
     except Exception:
         pass
 
+    tickers = set()
+
+    # S&P 500
     try:
         df = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
-        tickers = df['Symbol'].str.replace('.', '-', regex=False).tolist()
-        with open(UNIVERSE_CACHE, 'w') as f:
-            json.dump({'date': today, 'tickers': tickers}, f)
-        print(f'  S&P 500 리스트 갱신: {len(tickers)}개')
-        return tickers
+        sp500 = df['Symbol'].str.replace('.', '-', regex=False).tolist()
+        tickers.update(sp500)
+        print(f'  S&P 500: {len(sp500)}개')
     except Exception as e:
-        print(f'  [S&P500 리스트 오류] {e} → 기본 리스트 사용')
-        return [
-            'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','BRK-B',
-            'JPM','V','MA','LLY','XOM','UNH','JNJ','PG','HD','MRK','ABBV',
-            'TSM','MU','INTC','AMD','QCOM','ARM','AMAT','LRCX','KLAC','MRVL',
-            'GS','BAC','MS','WFC','AXP','BLK','C','SCHW','COF','USB',
-            'CVX','COP','NEE','SLB','OXY','PSX','MPC','VLO','EOG','PXD',
-            'WMT','COST','TGT','HD','LOW','NKE','MCD','SBUX','TJX','ROST',
-            'NFLX','DIS','CMCSA','T','VZ','CHTR','EA','TTWO','WBD',
-            'CAT','HON','DE','RTX','LMT','GE','UPS','BA','MMM','EMR',
-            'CRM','NOW','ADBE','ORCL','INTU','SNOW','PLTR','UBER','COIN',
-        ]
+        print(f'  [S&P500 오류] {e} → fallback 사용')
+        tickers.update(_SP500_FALLBACK)
+
+    # 나스닥 100
+    try:
+        tables = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100')
+        ndx_df = next(t for t in tables if 'Ticker' in t.columns or 'Symbol' in t.columns)
+        col = 'Ticker' if 'Ticker' in ndx_df.columns else 'Symbol'
+        ndx100 = ndx_df[col].str.replace('.', '-', regex=False).tolist()
+        tickers.update(ndx100)
+        print(f'  나스닥 100: {len(ndx100)}개')
+    except Exception as e:
+        print(f'  [나스닥100 오류] {e} → fallback 사용')
+        tickers.update(_NDX100_FALLBACK)
+
+    result = sorted(tickers)
+    with open(UNIVERSE_CACHE, 'w') as f:
+        json.dump({'date': today, 'tickers': result}, f)
+    print(f'  유니버스 확정: {len(result)}개 (S&P500 + 나스닥100 합산)')
+    return result
 
 # ── 알림 중복 방지 로그 ──────────────────────────────────────────────
 def _load_log():
@@ -88,7 +120,7 @@ def scan_universe(vol_threshold=3.0, price_threshold=5.0):
     주 1~2개 수준이 목표
     """
     already_alerted = _load_log()['alerted']
-    universe = get_sp500()
+    universe = get_universe()
 
     print(f'  [{datetime.now().strftime("%H:%M")}] S&P500 {len(universe)}개 종목 스캔 중...')
     try:
