@@ -1,40 +1,56 @@
 """
 시장 이상 거래량 스캐너 — 고위험 신호 포착
-기준: 거래량 3x 초과 + 주가 5% 이상 급등락 (개별 주식만)
-ETF 제외, 주 1~2개 수준의 진짜 신호만 전송
-미국 장 중(KST 23:30~06:00) 매 시간 실행
+기준: 거래량 3x 초과 + 주가 5% 이상 급등락
+대상: S&P 500 전종목 (Wikipedia 자동 갱신, ETF 제외)
+주 1~2개 수준의 진짜 신호만 전송 / 미국 장 중 매 시간 실행
 """
 import json, os, sys, requests
 from datetime import datetime, timezone, timedelta, date
 
+import pandas as pd
 import yfinance as yf
 import groq_client
 
-BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
-LOG_FILE  = os.path.join(BASE_DIR, 'scanner_log.json')   # 오늘 이미 알린 종목 추적
+BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
+LOG_FILE       = os.path.join(BASE_DIR, 'scanner_log.json')
+UNIVERSE_CACHE = os.path.join(BASE_DIR, 'sp500_cache.json')
 
 with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
 
-# ── 스캔 대상: 개별 주식만 (ETF 전부 제외) ─────────────────────────
-UNIVERSE = [
-    # 빅테크
-    'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','ORCL','ADBE',
-    # 반도체 (포트폴리오 직결)
-    'TSM','MU','INTC','AMD','QCOM','ARM','AMAT','LRCX','KLAC','MRVL','SMCI',
-    # 금융
-    'JPM','BAC','GS','MS','WFC','V','MA','AXP','BLK',
-    # 헬스케어
-    'LLY','UNH','JNJ','ABBV','MRK','PFE','TMO','DHR',
-    # 에너지·산업
-    'XOM','CVX','COP','CAT','HON','DE','RTX','LMT','GE','NEE',
-    # 소비재·유통
-    'WMT','COST','HD','NKE','MCD','SBUX','TGT','LOW',
-    # 통신·미디어
-    'NFLX','DIS','CMCSA','T','VZ',
-    # 기타 대형주
-    'BRK-B','CRM','NOW','UBER','COIN','PLTR',
-]
+
+# ── S&P 500 리스트 (당일 캐시) ──────────────────────────────────────
+def get_sp500():
+    """Wikipedia에서 S&P 500 티커 가져오기. 당일 캐시 사용."""
+    today = date.today().isoformat()
+    try:
+        with open(UNIVERSE_CACHE, 'r') as f:
+            cache = json.load(f)
+        if cache.get('date') == today:
+            return cache['tickers']
+    except Exception:
+        pass
+
+    try:
+        df = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
+        tickers = df['Symbol'].str.replace('.', '-', regex=False).tolist()
+        with open(UNIVERSE_CACHE, 'w') as f:
+            json.dump({'date': today, 'tickers': tickers}, f)
+        print(f'  S&P 500 리스트 갱신: {len(tickers)}개')
+        return tickers
+    except Exception as e:
+        print(f'  [S&P500 리스트 오류] {e} → 기본 리스트 사용')
+        return [
+            'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','AVGO','BRK-B',
+            'JPM','V','MA','LLY','XOM','UNH','JNJ','PG','HD','MRK','ABBV',
+            'TSM','MU','INTC','AMD','QCOM','ARM','AMAT','LRCX','KLAC','MRVL',
+            'GS','BAC','MS','WFC','AXP','BLK','C','SCHW','COF','USB',
+            'CVX','COP','NEE','SLB','OXY','PSX','MPC','VLO','EOG','PXD',
+            'WMT','COST','TGT','HD','LOW','NKE','MCD','SBUX','TJX','ROST',
+            'NFLX','DIS','CMCSA','T','VZ','CHTR','EA','TTWO','WBD',
+            'CAT','HON','DE','RTX','LMT','GE','UPS','BA','MMM','EMR',
+            'CRM','NOW','ADBE','ORCL','INTU','SNOW','PLTR','UBER','COIN',
+        ]
 
 # ── 알림 중복 방지 로그 ──────────────────────────────────────────────
 def _load_log():
@@ -72,11 +88,12 @@ def scan_universe(vol_threshold=3.0, price_threshold=5.0):
     주 1~2개 수준이 목표
     """
     already_alerted = _load_log()['alerted']
+    universe = get_sp500()
 
-    print(f'  [{datetime.now().strftime("%H:%M")}] {len(UNIVERSE)}개 종목 스캔 중...')
+    print(f'  [{datetime.now().strftime("%H:%M")}] S&P500 {len(universe)}개 종목 스캔 중...')
     try:
         raw = yf.download(
-            UNIVERSE,
+            universe,
             period='25d',
             interval='1d',
             group_by='ticker',
@@ -89,7 +106,7 @@ def scan_universe(vol_threshold=3.0, price_threshold=5.0):
         return []
 
     signals = []
-    for ticker in UNIVERSE:
+    for ticker in universe:
         if ticker in already_alerted:
             continue  # 오늘 이미 알린 종목 skip
         try:
