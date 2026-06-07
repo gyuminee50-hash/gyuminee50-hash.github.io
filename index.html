@@ -304,6 +304,61 @@
   .log-alert { font-size: 12px; color: #f97316; padding: 3px 0; }
   .log-ok { font-size: 12px; color: var(--green); padding: 3px 0; }
 
+  /* AUTOMATION GRID */
+  .auto-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 48px;
+  }
+  @media(max-width:900px){ .auto-grid{ grid-template-columns: repeat(2,1fr); } }
+  .auto-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; padding: 20px 18px; position: relative; overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .auto-card:hover { transform: translateY(-2px); border-color: rgba(201,168,76,0.3); }
+  .auto-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .auto-card.daily::before  { background: linear-gradient(90deg,#22c55e,transparent); }
+  .auto-card.weekly::before { background: linear-gradient(90deg,#3b82f6,transparent); }
+  .auto-card.signal::before { background: linear-gradient(90deg,#f97316,transparent); }
+  .auto-card.report::before { background: linear-gradient(90deg,var(--gold),transparent); }
+  .auto-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 10px;
+  }
+  .auto-badge.daily  { background: rgba(34,197,94,.1);  color: #22c55e; }
+  .auto-badge.weekly { background: rgba(59,130,246,.1); color: #60a5fa; }
+  .auto-badge.signal { background: rgba(249,115,22,.1); color: #f97316; }
+  .auto-badge.report { background: rgba(201,168,76,.1); color: var(--gold); }
+  .auto-time  { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 4px; line-height: 1; }
+  .auto-name  { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .auto-desc  { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+  .auto-status {
+    display: flex; align-items: center; gap: 5px; margin-top: 12px;
+    font-size: 10px; color: #22c55e; letter-spacing: 1px;
+  }
+  .auto-status::before {
+    content: ''; width: 5px; height: 5px; border-radius: 50%;
+    background: #22c55e; animation: pulse 2s infinite;
+  }
+  .auto-file { position: absolute; bottom: 14px; right: 14px; font-size: 9px; color: rgba(255,255,255,0.15); letter-spacing: 1px; }
+
+  /* HARDCODE REPORT */
+  .hc-card {
+    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px; padding: 22px 24px; margin-bottom: 48px;
+  }
+  .hc-row {
+    display: flex; align-items: flex-start; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px;
+  }
+  .hc-row:last-child { border-bottom: none; }
+  .hc-icon { font-size: 16px; flex-shrink: 0; width: 20px; }
+  .hc-file { font-weight: 700; color: var(--gold); width: 200px; flex-shrink: 0; font-family: monospace; font-size: 11px; }
+  .hc-text { color: var(--text-dim); line-height: 1.6; }
+  .hc-ok   { color: #22c55e; }
+  .hc-warn { color: #f97316; }
+
   /* FOOTER */
   footer {
     text-align: center; padding: 32px;
@@ -326,6 +381,7 @@
   <div style="display:flex;align-items:center;gap:24px;">
     <nav>
       <a href="#activitylog">활동로그</a>
+      <a href="#automation">자동화</a>
       <a href="#sectoranalysis">섹터분석</a>
       <a href="#feargreed">공포탐욕</a>
     </nav>
@@ -341,10 +397,10 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>06:30</strong>모닝 브리핑</div>
-  <div class="status-item"><strong>18:00</strong>일일 리포트</div>
+  <div class="status-item"><strong>8</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>6</strong>모니터링 종목</div>
   <div class="status-item"><strong>4</strong>활성 부서</div>
-  <div class="status-item"><strong>5</strong>모니터링 종목</div>
+  <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
 
 <div class="hero">
@@ -433,17 +489,17 @@
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">06:30</div>
-          <div class="sched-desc">모닝 브리핑 (한국 3 + 미국 3)</div>
+          <div class="sched-desc">모닝 브리핑 (한국 3 + 미국 3, LLM 번역)</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
-          <div class="sched-time">09:00</div>
-          <div class="sched-desc">팀 회의 보고 + 가격 알림</div>
+          <div class="sched-time">07:30</div>
+          <div class="sched-desc">실적 발표 D-2 사전 알림 + 예상 EPS/매출</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
-          <div class="sched-time">15:00</div>
-          <div class="sched-desc">업그레이드 제안 3선택지 (ROY → 이사장)</div>
+          <div class="sched-time">08:30</div>
+          <div class="sched-desc">매크로 지표 브리핑 (CPI·FOMC·NFP 발표일만)</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
@@ -453,22 +509,135 @@
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">21:00</div>
-          <div class="sched-desc">미국 개장 전 속보 (뉴욕 개장 30분 전)</div>
+          <div class="sched-desc">미국 개장 전 속보 · VIX·F&amp;G 업데이트</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active"></div>
+          <div class="sched-time">23:00~</div>
+          <div class="sched-desc">이상 거래량 스캐너 (S&amp;P100, 매 시간, 신호 시만 전송)</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot"></div>
-          <div class="sched-time">일 08:00</div>
-          <div class="sched-desc">주간 시장 전망 + 포트폴리오 트래킹</div>
+          <div class="sched-time">월 07:00</div>
+          <div class="sched-desc">주간 포트폴리오 리포트 + 인과율 분석</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot"></div>
-          <div class="sched-time">1일 07:30</div>
-          <div class="sched-desc">월간 투자 인사이트 리포트</div>
+          <div class="sched-time">격주 일</div>
+          <div class="sched-desc">AI 리서치 리포트 PDF (6종목 순환)</div>
         </div>
       </div>
     </div>
   </div>
 
+
+  <!-- ── 자동화 시스템 현황 ── -->
+  <div id="automation" class="section-title">🤖 자동화 시스템 현황 · Automation Status</div>
+  <div class="auto-grid">
+
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">06:30</div>
+      <div class="auto-name">모닝 브리핑</div>
+      <div class="auto-desc">한국 3건 + 미국 3건 뉴스 자동 수집. Groq LLM으로 제목 번역·헤드라인 정제, 불릿 요약.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">morning_briefing.py</div>
+    </div>
+
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">07:30</div>
+      <div class="auto-name">실적 발표 알림</div>
+      <div class="auto-desc">포트폴리오 + 관련 16개 종목 어닝 D-2 사전 알림. 예상 EPS·매출 + 체크포인트 2가지.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">earnings_alert.py</div>
+    </div>
+
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">08:30</div>
+      <div class="auto-name">매크로 브리핑</div>
+      <div class="auto-desc">CPI·FOMC·NFP·GDP 등 발표일만 자동 감지. 뉴스 수집 후 포트폴리오 영향 즉시 분석.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">macro_briefing.py</div>
+    </div>
+
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">21:00</div>
+      <div class="auto-name">개장 전 속보</div>
+      <div class="auto-desc">뉴욕 개장 30분 전 핵심 뉴스 + S&amp;P 선물 동향. VIX·F&amp;G 야간 업데이트 후 홈페이지 반영.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">premarket_alert.py</div>
+    </div>
+
+    <div class="auto-card signal">
+      <span class="auto-badge signal">SIGNAL</span>
+      <div class="auto-time">23~06시</div>
+      <div class="auto-name">이상 거래량 스캐너</div>
+      <div class="auto-desc">S&amp;P100 + Nasdaq 주요 종목 매 시간 스캔. 거래량 2.5x + 변동 2% 이상 시 즉시 알림.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">volume_scanner.py</div>
+    </div>
+
+    <div class="auto-card weekly">
+      <span class="auto-badge weekly">WEEKLY</span>
+      <div class="auto-time">월 07:00</div>
+      <div class="auto-name">주간 포트폴리오</div>
+      <div class="auto-desc">6종목 주간 등락률 + 원인 분석. AI 인과율(0~100%) 바 시각화. AP팀 검수용.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">weekly_portfolio.py</div>
+    </div>
+
+    <div class="auto-card report">
+      <span class="auto-badge report">BIWEEKLY</span>
+      <div class="auto-time">격주 일</div>
+      <div class="auto-name">AI 리서치 리포트</div>
+      <div class="auto-desc">6종목 순환 (TSMC→MU→GGLL→IEMG→SPY→QQQ). 뉴스+애널리스트 데이터 → PDF 자동 생성.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">research_report.py</div>
+    </div>
+
+    <div class="auto-card report">
+      <span class="auto-badge report">WEEKLY</span>
+      <div class="auto-time">일 08:00</div>
+      <div class="auto-name">섹터 분석</div>
+      <div class="auto-desc">S&amp;P500 11개 섹터 등락률 + 포트폴리오 연계 추천. 매주 일요일 자동 업데이트.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">sector_analysis.py</div>
+    </div>
+
+  </div>
+
+  <!-- ── 하드코딩 체크 현황 ── -->
+  <div class="section-title">🔍 코드 품질 체크 · Hardcoding Audit</div>
+  <div class="hc-card">
+    <div class="hc-row">
+      <div class="hc-icon">✅</div>
+      <div class="hc-file">config.json</div>
+      <div class="hc-text hc-ok">API 키·텔레그램 토큰·종목수 전부 설정 파일 관리. .gitignore 처리 완료. GitHub 노출 없음.</div>
+    </div>
+    <div class="hc-row">
+      <div class="hc-icon">✅</div>
+      <div class="hc-file">groq_client.py</div>
+      <div class="hc-text hc-ok">Groq URL·모델명 공통 모듈 통합. 5개 스크립트 중복 제거 완료. 모델 변경 시 1곳만 수정.</div>
+    </div>
+    <div class="hc-row">
+      <div class="hc-icon">✅</div>
+      <div class="hc-file">llm_translate.py</div>
+      <div class="hc-text hc-ok">제목·불릿 번역 전부 Groq LLM. 정규식·하드코딩 패턴 매칭 0개. 실패 시 Google Translate fallback.</div>
+    </div>
+    <div class="hc-row">
+      <div class="hc-icon">⚠️</div>
+      <div class="hc-file">morning_briefing.py<br><span style="font-weight:400;color:rgba(255,255,255,0.3)">_IMPL_RULES</span></div>
+      <div class="hc-text hc-warn">투자 시사점 로직이 6종목 기준으로 작성됨. 포트폴리오 변경 시 수동 업데이트 필요. LLM 대체 불가한 정밀 비즈니스 로직 — 허용 가능.</div>
+    </div>
+    <div class="hc-row">
+      <div class="hc-icon">⚠️</div>
+      <div class="hc-file">macro_briefing.py<br><span style="font-weight:400;color:rgba(255,255,255,0.3)">MACRO_CALENDAR</span></div>
+      <div class="hc-text hc-warn">2026년 경제 지표 캘린더 하드코딩. 2027년 1월 업데이트 필요. 연 1회 갱신 — 허용 가능.</div>
+    </div>
+  </div>
 
   <div id="sectoranalysis" class="section-title">📈 유망 섹터 분석 · ROY Sector Pick</div>
   <div class="sector-card">
