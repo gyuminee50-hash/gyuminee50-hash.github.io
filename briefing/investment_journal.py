@@ -731,18 +731,18 @@ def _init_holdings(wb):
         return
     today = '2026-06-07'
     rows = [
-        # 미래에셋 — 가격·수량 미기재, 이사장님이 직접 입력
-        (today, '미래에셋', '매수', '133690', 'TIGER 미국나스닥100',    None, None, '초기보유 — 가격·수량 직접 입력'),
-        (today, '미래에셋', '매수', '360750', 'TIGER 미국S&P500',       None, None, '초기보유 — 가격·수량 직접 입력'),
-        (today, '미래에셋', '매수', '453850', 'ACE 미국30년국채액티브', None, None, '초기보유 — 가격·수량 직접 입력'),
-        (today, '미래에셋', '매수', '232080', 'TIGER 코스닥150',        None, None, '초기보유 — 가격·수량 직접 입력'),
-        # 메리츠 — 평균단가($/주) 기입
-        (today, '메리츠', '매수', 'MU',   'Micron Technology',         354.23,   2, '초기보유'),
-        (today, '메리츠', '매수', 'IEMG', 'iShares Core MSCI EM',       70.5376, 13, '초기보유'),
-        (today, '메리츠', '매수', 'SPYM', 'SPDR S&P 500 Momentum',      80.7258, 24, '초기보유'),
-        (today, '메리츠', '매수', 'GGLL', 'GraniteShares 2x GOOGL',    113.7276, 17, '초기보유'),
-        (today, '메리츠', '매수', 'QLD',  'ProShares Ultra QQQ',        85.042,  24, '초기보유'),
-        (today, '메리츠', '매수', 'TSM',  'Taiwan Semiconductor ADR',  406.74,    1, '초기보유'),
+        # 미래에셋 연금저축 — 평균단가(원) / 수량 실데이터
+        (today, '미래에셋', '매수', '133690', 'TIGER 미국나스닥100',      191952,   8, '초기보유'),
+        (today, '미래에셋', '매수', '360750', 'TIGER 미국S&P500',          25481, 166, '초기보유'),
+        (today, '미래에셋', '매수', '232080', 'TIGER 코스닥150',           17668, 220, '초기보유'),
+        (today, '미래에셋', '매수', '453850', 'ACE 미국30년국채액티브',     7908, 372, '초기보유'),
+        # 메리츠 Super365 — 평균단가($/주) 실데이터
+        (today, '메리츠', '매수', 'MU',   'Micron Technology',          708.46,    2, '초기보유'),
+        (today, '메리츠', '매수', 'IEMG', 'iShares Core MSCI EM',       70.5376,  13, '초기보유'),
+        (today, '메리츠', '매수', 'SPYM', 'SPDR Portfolio S&P500',      80.7258,  24, '초기보유'),
+        (today, '메리츠', '매수', 'GGLL', 'GraniteShares 2x GOOGL',    113.7276,  17, '초기보유'),
+        (today, '메리츠', '매수', 'QLD',  'ProShares Ultra QQQ 2X',     85.0420,  24, '초기보유'),
+        (today, '메리츠', '매수', 'TSM',  'TSMC ADR',                   406.7400,   1, '초기보유'),
     ]
     for i, row_data in enumerate(rows, 2):
         bg = LIGHT if i % 2 == 0 else W
