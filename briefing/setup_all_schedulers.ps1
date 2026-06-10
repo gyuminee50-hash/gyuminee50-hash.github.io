@@ -52,6 +52,13 @@ $t7 = New-ScheduledTaskTrigger -Weekly -WeeksInterval 1 -DaysOfWeek Monday -At "
 Register-ScheduledTask -TaskName "GMCapital_WeeklyPortfolio" -Action $a7 -Trigger $t7 -Settings $s30 -RunLevel Highest -Force
 Write-Host "  [OK] Weekly Portfolio - every Monday 07:00" -ForegroundColor Green
 
+# 8. Investment Journal - run at logon (watchdog, always-on)
+$a8 = New-ScheduledTaskAction -Execute $python -Argument "`"$dir\investment_journal.py`"" -WorkingDirectory $dir
+$t8 = New-ScheduledTaskTrigger -AtLogOn
+$s0 = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 0) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5)
+Register-ScheduledTask -TaskName "GMCapital_InvestmentJournal" -Action $a8 -Trigger $t8 -Settings $s0 -RunLevel Highest -Force
+Write-Host "  [OK] Investment Journal - run at logon (always-on watchdog)" -ForegroundColor Green
+
 Write-Host ""
 Write-Host "GM Capital Automation Setup Complete!" -ForegroundColor Cyan
 Write-Host "  Daily  : 04:00 / 06:30 / 07:30 / 18:00 / 22:30 / 23:00~06:00(hourly)" -ForegroundColor White
