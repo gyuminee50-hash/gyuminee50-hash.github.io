@@ -397,7 +397,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>8</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>9</strong>자동화 스크립트</div>
   <div class="status-item"><strong>6</strong>모니터링 종목</div>
   <div class="status-item"><strong>4</strong>활성 부서</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
@@ -575,8 +575,8 @@
       <span class="auto-badge signal">SIGNAL</span>
       <div class="auto-time">23~06시</div>
       <div class="auto-name">이상 거래량 스캐너</div>
-      <div class="auto-desc">S&amp;P 500 전종목 매 시간 스캔. 거래량 3x + 급등락 5% 이상만 포착. 섹터 불문 급락·급등 신호 즉시 포착.</div>
-      <div class="auto-status">READY</div>
+      <div class="auto-desc">S&amp;P 500 + 나스닥100 합집합 유니버스 매 시간 스캔. 거래량 3x + 급등락 5% 이상만 포착. DST 자동 적용 (EDT/EST).</div>
+      <div class="auto-status">ACTIVE</div>
       <div class="auto-file">volume_scanner.py</div>
     </div>
 
@@ -605,6 +605,15 @@
       <div class="auto-desc">S&amp;P500 11개 섹터 등락률 + 포트폴리오 연계 추천. 매주 일요일 자동 업데이트.</div>
       <div class="auto-status">READY</div>
       <div class="auto-file">sector_analysis.py</div>
+    </div>
+
+    <div class="auto-card report">
+      <span class="auto-badge report" style="background:rgba(139,92,246,0.2);color:#a78bfa;">ALWAYS-ON</span>
+      <div class="auto-time">watchdog</div>
+      <div class="auto-name">투자일지 자동화</div>
+      <div class="auto-desc">거래기록 입력 감지 → 포지션 자동 집계 → Groq AI 분석 (핵심논거·리스크·목표가·손절가). 대시보드 실시간 반영. OneDrive 동기화.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">investment_journal.py · v2</div>
     </div>
 
   </div>
