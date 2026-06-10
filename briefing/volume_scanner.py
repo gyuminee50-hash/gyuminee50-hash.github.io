@@ -102,7 +102,14 @@ def _save_log(log):
 
 # ── 유틸 ────────────────────────────────────────────────────────────
 def _is_market_hours():
-    et = datetime.now(timezone(timedelta(hours=-4)))  # EDT
+    # pytz 없이 정확한 ET 처리: 미국 동부 DST는 3월 둘째 일~11월 첫째 일
+    utc_now = datetime.now(timezone.utc)
+    # DST 적용 여부: 3/8 ~ 11/1 사이면 EDT(UTC-4), 아니면 EST(UTC-5)
+    y = utc_now.year
+    dst_start = datetime(y, 3,  8, 2, tzinfo=timezone.utc) + timedelta(days=(6 - datetime(y, 3, 8).weekday()) % 7)
+    dst_end   = datetime(y, 11, 1, 2, tzinfo=timezone.utc) + timedelta(days=(6 - datetime(y, 11,1).weekday()) % 7)
+    offset = timedelta(hours=-4) if dst_start <= utc_now < dst_end else timedelta(hours=-5)
+    et = utc_now.astimezone(timezone(offset))
     return et.weekday() < 5 and 9 <= et.hour < 16
 
 def send_telegram(text):

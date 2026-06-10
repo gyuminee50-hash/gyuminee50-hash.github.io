@@ -32,12 +32,13 @@ $t4 = New-ScheduledTaskTrigger -Daily -At "07:30"
 Register-ScheduledTask -TaskName "GMCapital_EarningsAlert" -Action $a4 -Trigger $t4 -Settings $s10 -RunLevel Highest -Force
 Write-Host "  [OK] Earnings Alert - daily 07:30" -ForegroundColor Green
 
-# 5. Macro Briefing - daily 08:30 + 22:30
+# 5. Macro Briefing - 22:30 (CPI/NFP/GDP: 08:30 ET = 21:30 KST+1h) + 04:00 (FOMC: 14:00 ET = 03:00 KST+1h)
+# 08:30 KST 제거: 미국 기준 전날 밤이라 지표 발표 전 → 예고 기사만 잡혀 오류
 $a5  = New-ScheduledTaskAction -Execute $python -Argument "`"$dir\macro_briefing.py`"" -WorkingDirectory $dir
-$t5a = New-ScheduledTaskTrigger -Daily -At "08:30"
-$t5b = New-ScheduledTaskTrigger -Daily -At "22:30"
+$t5a = New-ScheduledTaskTrigger -Daily -At "22:30"
+$t5b = New-ScheduledTaskTrigger -Daily -At "04:00"
 Register-ScheduledTask -TaskName "GMCapital_MacroBriefing" -Action $a5 -Trigger @($t5a,$t5b) -Settings $s10 -RunLevel Highest -Force
-Write-Host "  [OK] Macro Briefing - daily 08:30, 22:30" -ForegroundColor Green
+Write-Host "  [OK] Macro Briefing - daily 22:30 (CPI/NFP/GDP), 04:00 (FOMC)" -ForegroundColor Green
 
 # 6. Research Report PDF - every 2 weeks on Sunday 08:00
 $a6 = New-ScheduledTaskAction -Execute $python -Argument "`"$dir\research_report.py`"" -WorkingDirectory $dir
@@ -53,6 +54,6 @@ Write-Host "  [OK] Weekly Portfolio - every Monday 07:00" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "GM Capital Automation Setup Complete!" -ForegroundColor Cyan
-Write-Host "  Daily  : 06:30 / 07:30 / 08:30 / 18:00 / 22:30 / 23:00~06:00(hourly)" -ForegroundColor White
+Write-Host "  Daily  : 04:00 / 06:30 / 07:30 / 18:00 / 22:30 / 23:00~06:00(hourly)" -ForegroundColor White
 Write-Host "  Weekly : Monday 07:00" -ForegroundColor White
 Write-Host "  Biweekly: Sunday 08:00" -ForegroundColor White

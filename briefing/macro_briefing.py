@@ -1,7 +1,11 @@
 """
 매크로 지표 발표 즉시 브리핑
 주요 경제 지표 발표 당일 → 포트폴리오 영향 분석 → 텔레그램 전송
-매일 08:30 (미국 지표 발표 직후) + 14:00 (FOMC 등 오후 발표) 실행
+
+실행 스케줄 (KST 기준):
+  22:30 KST = 09:30 ET → CPI·NFP·GDP 발표(08:30 ET) 후 1시간
+  04:00 KST = 15:00 ET → FOMC 발표(14:00 ET) 후 1시간
+  [08:30 KST 실행 제거 — 미국은 전날 밤으로 지표 발표 전]
 """
 import json, os, sys, requests, xml.etree.ElementTree as ET
 from datetime import datetime, date
@@ -71,10 +75,22 @@ def _get_today_events():
             if d == today_str]
 
 
+# 한국어 이벤트명 → 영문 검색 쿼리 매핑 (Google News 영문 기사 수집용)
+_EN_QUERY = {
+    'FOMC 금리 결정':      'FOMC Fed interest rate decision',
+    'CPI 소비자물가':       'CPI consumer price index inflation',
+    '비농업 고용지수 NFP':  'NFP nonfarm payrolls jobs report',
+    'GDP 성장률':           'US GDP growth rate',
+    'PPI 생산자물가':       'PPI producer price index',
+    '미시간 소비자신뢰지수': 'Michigan consumer sentiment index',
+}
+
 # ── 뉴스로 실제 수치 파악 ─────────────────────────────────────────────
 def _fetch_macro_news(event_name):
     """Google News RSS에서 오늘 지표 관련 실제 발표 수치 수집"""
-    query = event_name.replace(' ', '+') + '+today'
+    # 영문 쿼리로 변환 (한국어 검색은 영문 기사가 안 잡힘)
+    en_query = next((v for k, v in _EN_QUERY.items() if k in event_name), event_name)
+    query = en_query.replace(' ', '+') + '+today'
     url   = (f'https://news.google.com/rss/search?q={query}'
              f'&hl=en-US&gl=US&ceid=US:en')
     try:

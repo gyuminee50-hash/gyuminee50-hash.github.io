@@ -13,15 +13,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
 
-# 모니터링 종목 (포트폴리오 + 관련 영향주)
+# 모니터링 종목 (포트폴리오 개별주 + 관련 영향주, ETF 제외)
+# SPY·QQQ·GGLL은 ETF/레버리지ETF → 실적 발표 없음
 WATCHLIST = {
-    # 포트폴리오
+    # 포트폴리오 개별주
     'TSM':  'TSMC',
     'MU':   'Micron',
-    'GGLL': 'GGLL(Alphabet 2x)',
     'GOOGL':'Alphabet',
-    'SPY':  'S&P500 ETF',
-    'QQQ':  'Nasdaq ETF',
     # 포트폴리오 영향 종목
     'NVDA': 'NVIDIA',
     'AMD':  'AMD',
