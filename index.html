@@ -672,16 +672,16 @@
   }
   loadSectorData();
 
-  // ── 시장 현황 (보유 종목 + 주요 지수) ──
+  // ── 시장 현황 (매크로 지표 — 보유 종목 제외) ──
+  // 엑셀에 이미 있는 보유 종목 시세는 표시 안 함
   const MKT_TICKERS = [
-    {s:'TSM',  n:'TSMC'},
-    {s:'MU',   n:'Micron'},
-    {s:'GGLL', n:'GraniteShares 2x GOOGL'},
-    {s:'QLD',  n:'ProShares Ultra QQQ'},
-    {s:'IEMG', n:'iShares EM'},
-    {s:'SPYM', n:'SPDR S&P500'},
-    {s:'SPY',  n:'S&P 500 ETF'},
-    {s:'QQQ',  n:'NASDAQ 100 ETF'},
+    {s:'SPY',   n:'S&P 500',        unit:'$'},
+    {s:'QQQ',   n:'NASDAQ 100',     unit:'$'},
+    {s:'^VIX',  n:'VIX 공포지수',   unit:''},
+    {s:'GLD',   n:'금 (Gold ETF)',   unit:'$'},
+    {s:'USO',   n:'원유 (Oil ETF)',  unit:'$'},
+    {s:'^TNX',  n:'미 10년 국채금리', unit:'%'},
+    {s:'DX-Y.NYB', n:'달러 인덱스',  unit:''},
   ];
 
   async function loadMarket() {
@@ -695,45 +695,49 @@
         krw = Math.round(fxD.rates.KRW);
       } catch(e) {}
 
-      // 주식 시세 (Yahoo Finance via CORS proxy)
+      // 시세 (Yahoo Finance via CORS proxy)
       const syms = MKT_TICKERS.map(t => t.s).join(',');
-      const yfUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,shortName`;
+      const yfUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(syms)}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent`;
       const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yfUrl)}`;
-      const pr = await fetch(proxyUrl, {cache: 'no-store'});
+      const pr = await fetch(proxyUrl, {cache:'no-store'});
       const pw = await pr.json();
       const quotes = JSON.parse(pw.contents).quoteResponse.result;
 
       let html = '';
 
-      // 환율 카드
+      // 환율 카드 (가장 먼저)
       if (krw) {
         html += `<div class="mkt-card">
           <div class="mkt-symbol">USD/KRW</div>
           <div class="mkt-price">${krw.toLocaleString()}원</div>
           <div class="mkt-name">달러 원화 환율</div>
         </div>`;
-        // 상태바 업데이트
         const sbEl = document.getElementById('sb-usdkrw');
         if (sbEl) sbEl.textContent = krw.toLocaleString() + '원';
       }
 
-      // 종목 카드
-      for (const q of quotes) {
+      // 매크로 지표 카드
+      for (const t of MKT_TICKERS) {
+        const q = quotes.find(q => q.symbol === t.s);
+        if (!q) continue;
         const chgPct = q.regularMarketChangePercent || 0;
         const chgAmt = q.regularMarketChange || 0;
         const cls  = chgPct >= 0 ? 'up' : 'dn';
         const sign = chgPct >= 0 ? '+' : '';
-        const name = MKT_TICKERS.find(t => t.s === q.symbol)?.n || q.shortName || q.symbol;
+        const price = t.unit === '%'
+          ? q.regularMarketPrice.toFixed(2) + '%'
+          : t.unit === '$'
+          ? '$' + q.regularMarketPrice.toFixed(2)
+          : q.regularMarketPrice.toFixed(2);
         html += `<div class="mkt-card">
-          <div class="mkt-symbol">${q.symbol}</div>
-          <div class="mkt-price ${cls}">$${q.regularMarketPrice.toFixed(2)}</div>
-          <div class="mkt-chg ${cls}">${sign}${chgPct.toFixed(2)}%&nbsp;(${sign}${chgAmt.toFixed(2)})</div>
-          <div class="mkt-name">${name}</div>
+          <div class="mkt-symbol">${t.s.replace('^','').replace('-Y.NYB','')}</div>
+          <div class="mkt-price ${cls}">${price}</div>
+          <div class="mkt-chg ${cls}">${sign}${chgPct.toFixed(2)}%</div>
+          <div class="mkt-name">${t.n}</div>
         </div>`;
-        if (q.symbol === 'SPY') {
+        if (t.s === 'SPY') {
           const sbSpy = document.getElementById('sb-spy');
-          if (sbSpy) sbSpy.textContent = `$${q.regularMarketPrice.toFixed(0)} (${sign}${chgPct.toFixed(2)}%)`;
-          if (sbSpy) sbSpy.style.color = cls === 'up' ? 'var(--green)' : 'var(--red)';
+          if (sbSpy) { sbSpy.textContent = `$${q.regularMarketPrice.toFixed(0)} (${sign}${chgPct.toFixed(2)}%)`; sbSpy.style.color = cls === 'up' ? 'var(--green)' : 'var(--red)'; }
         }
       }
 
@@ -743,7 +747,7 @@
     }
   }
   loadMarket();
-  setInterval(loadMarket, 60000);  // 1분마다 자동 갱신
+  setInterval(loadMarket, 60000);
 
   // 공포탐욕 게이지
   const FG_SEGS = [
