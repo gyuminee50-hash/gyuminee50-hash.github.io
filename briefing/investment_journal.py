@@ -1,7 +1,8 @@
 """
-GM Capital 투자일지 v4
+GM Capital 투자일지 v5
 시트: 미래에셋_거래(₩) / 메리츠_거래($) / 포지션×2 / 대시보드 / 분석히스토리
 Excel SUMPRODUCT 수식이 포지션 자동계산 — Python은 현재가 + AI 분석만 담당
+메리츠: 매입환율 컬럼 추가 → 환차손익·총수익(₩) 자동계산
 """
 import json, os, re, time, threading, traceback
 from datetime import datetime
@@ -73,32 +74,42 @@ def _c(ws, r, col, val=None, bg=W, bold=False, color=DARK,
 # ══════════════════════════════════════════════════════════════════
 # 거래 시트 (미래에셋_거래 / 메리츠_거래)
 # ══════════════════════════════════════════════════════════════════
-# 거래 시트 공통 컬럼: 계좌 열 없음 (시트 자체가 계좌 구분)
-# A:날짜  B:구분(매수/매도)  C:티커  D:종목명  E:가격  F:수량  G:메모
-TRADE_COLS = [
-    ('날짜',   12, FMT_INT,  'center'),
-    ('구분',    9, None,     'center'),
-    ('티커',   11, None,     'center'),
-    ('종목명', 22, None,     'center'),
-    ('가격',   15, FMT_DEC4, 'center'),
-    ('수량',    9, FMT_INT,  'center'),
-    ('메모',   26, None,     'center'),
+# 미래에셋: A날짜 B구분 C티커 D종목명 E가격(₩) F수량 G메모
+# 메리츠:   A날짜 B구분 C티커 D종목명 E가격($) F수량 G매입환율 H메모
+TRADE_COLS_KRW = [
+    ('날짜',     12, None,    'center'),
+    ('구분',      9, None,    'center'),
+    ('티커',     11, None,    'center'),
+    ('종목명',   22, None,    'center'),
+    ('가격(₩)', 15, FMT_INT, 'center'),
+    ('수량',      9, FMT_INT, 'center'),
+    ('메모',     26, None,    'left'),
+]
+TRADE_COLS_USD = [
+    ('날짜',      12, None,    'center'),
+    ('구분',       9, None,    'center'),
+    ('티커',      11, None,    'center'),
+    ('종목명',    22, None,    'center'),
+    ('가격($)',   15, FMT_DEC4,'center'),
+    ('수량',       9, FMT_INT, 'center'),
+    ('매입환율',  13, FMT_INT, 'center'),   # 매수 시점 USD/KRW 환율
+    ('메모',      26, None,    'left'),
 ]
 
-def _build_trade_sheet(wb, name, currency, tab):
+def _build_trade_sheet(wb, name, currency, tab, cols):
     ws = wb.create_sheet(name)
     ws.sheet_view.showGridLines = False
-    ws.freeze_panes = 'A2'
     ws.sheet_properties.tabColor = tab
+    last = get_column_letter(len(cols))
     # 서브타이틀 행 (행 1)
-    ws.merge_cells('A1:G1')
+    ws.merge_cells(f'A1:{last}1')
     sub = ws['A1']
     sub.value = f'{name}  ({currency})'
     sub.fill  = _fill(H_NAVY); sub.font = _font(bold=True, color=GOLD, size=11)
     sub.alignment = _align(); sub.border = _hborder()
     ws.row_dimensions[1].height = 26
     # 헤더 (행 2)
-    for ci, (label, width, fmt, h) in enumerate(TRADE_COLS, 1):
+    for ci, (label, width, fmt, h) in enumerate(cols, 1):
         _c(ws, 2, ci, label, H_SUB, bold=True, color=W, hdr=True)
         ws.column_dimensions[get_column_letter(ci)].width = width
     ws.row_dimensions[2].height = 22
@@ -106,7 +117,7 @@ def _build_trade_sheet(wb, name, currency, tab):
     # 데이터 영역 (행 3~502, 500행)
     for row in range(3, 503):
         bg = LIGHT if row % 2 == 1 else W
-        for ci, (_, _, fmt, h) in enumerate(TRADE_COLS, 1):
+        for ci, (_, _, fmt, h) in enumerate(cols, 1):
             _c(ws, row, ci, bg=bg, fmt=fmt, h=h)
         ws.row_dimensions[row].height = 18
 
@@ -135,22 +146,27 @@ POS_COLS_KRW = [
     ('종합판단',      12, None,     'center', 'judge'),
 ]
 POS_COLS_USD = [
-    ('티커',          9,  None,     'center', 'calc'),
-    ('종목명',        22, None,     'center', 'calc'),
-    ('총매수수량',    10, FMT_INT,  'center', 'calc'),
-    ('총매도수량',    10, FMT_INT,  'center', 'calc'),
-    ('보유수량',      10, FMT_INT,  'center', 'calc'),
-    ('평균단가($)',   14, FMT_DEC4, 'center', 'calc'),
-    ('투자원금($)',   15, FMT_DEC2, 'center', 'calc'),
-    ('현재가($)',     14, FMT_DEC2, 'center', 'price'),
-    ('평가금액($)',   15, FMT_DEC2, 'center', 'price'),
-    ('손익($)',       14, FMT_PNL,  'center', 'price'),
-    ('수익률(%)',     11, FMT_PCT,  'center', 'price'),
-    ('매수 핵심 논거',52, None,     'left',   'ai'),
-    ('리스크 요인',   32, None,     'left',   'ai'),
-    ('목표가($)',     13, FMT_DEC2, 'center', 'ai'),
-    ('손절가($)',     13, FMT_DEC2, 'center', 'ai'),
-    ('종합판단',      12, None,     'center', 'judge'),
+    ('티커',           9,  None,     'center', 'calc'),
+    ('종목명',         22, None,     'center', 'calc'),
+    ('총매수수량',     10, FMT_INT,  'center', 'calc'),
+    ('총매도수량',     10, FMT_INT,  'center', 'calc'),
+    ('보유수량',       10, FMT_INT,  'center', 'calc'),
+    ('평균단가($)',    14, FMT_DEC4, 'center', 'calc'),
+    ('투자원금($)',    15, FMT_DEC2, 'center', 'calc'),
+    ('현재가($)',      14, FMT_DEC2, 'center', 'price'),
+    ('평가금액($)',    15, FMT_DEC2, 'center', 'price'),
+    ('손익($)',        14, FMT_PNL,  'center', 'price'),
+    ('수익률(%)',      11, FMT_PCT,  'center', 'price'),
+    ('매수 핵심 논거', 52, None,     'left',   'ai'),
+    ('리스크 요인',    32, None,     'left',   'ai'),
+    ('목표가($)',      13, FMT_DEC2, 'center', 'ai'),
+    ('손절가($)',      13, FMT_DEC2, 'center', 'ai'),
+    ('종합판단',       12, None,     'center', 'judge'),
+    # ── 환차손익 전용 열 (Q~T) — 메리츠 전용, 수식 자동계산 ──
+    ('매입환율(평균)', 13, FMT_INT,  'center', 'fx'),   # Q: SUMPRODUCT 가중평균
+    ('환차손익(₩)',   14, FMT_PNLI, 'center', 'fx'),   # R: (현재환율-매입환율)×투자원금$
+    ('총수익(₩)',     14, FMT_PNLI, 'center', 'fx'),   # S: 평가금액₩ - 투자원금₩
+    ('투자원금(₩)',   15, FMT_INT,  'center', 'fx'),   # T: 투자원금$ × 매입환율
 ]
 
 _HDR_BG = {
@@ -158,12 +174,14 @@ _HDR_BG = {
     'price': '155E75', # 현재가 열 — 틸
     'ai':    H_SUB,    # AI 분석 열
     'judge': '3B1F6B', # 판단 열 — 퍼플
+    'fx':    '065F46', # 환차손익 열 — 에메랄드 그린
 }
 _ROW_BG = {
     'calc':  None,   # 교대색 (W / LIGHT)
     'price': None,
     'ai':    AI_BG,
     'judge': FB_BG,
+    'fx':    None,
 }
 
 def _build_position(wb, name, cols, tab):
@@ -180,11 +198,13 @@ def _build_position(wb, name, cols, tab):
 # ══════════════════════════════════════════════════════════════════
 # 포지션 수식 생성
 # ══════════════════════════════════════════════════════════════════
-def _make_formulas(trade_sheet, row):
-    """포지션 시트 row 번호에 해당하는 수식 딕셔너리 반환"""
+def _make_formulas(trade_sheet, row, is_us=False):
+    """포지션 시트 row 번호에 해당하는 수식 딕셔너리 반환
+    is_us=True면 환차손익 수식 Q~T열 추가 (메리츠_거래 G열 = 매입환율)
+    """
     ts = f"'{trade_sheet}'"
     r  = row
-    return {
+    formulas = {
         # C: 총매수수량
         3:  (f"=SUMPRODUCT(({ts}!$C$3:$C$502=A{r})"
              f"*({ts}!$B$3:$B$502=\"매수\")"
@@ -200,7 +220,7 @@ def _make_formulas(trade_sheet, row):
              f"*({ts}!$B$3:$B$502=\"매수\")"
              f"*{ts}!$E$3:$E$502"
              f"*{ts}!$F$3:$F$502)/C{r},0)"),
-        # G: 투자원금
+        # G: 투자원금($)
         7:  f"=F{r}*E{r}",
         # H: 현재가 — Python이 채움 (수식 없음)
         # I: 평가금액
@@ -210,11 +230,32 @@ def _make_formulas(trade_sheet, row):
         # K: 수익률(%)
         11: f"=IF(AND(H{r}>0,G{r}>0),(I{r}-G{r})/G{r}*100,0)",
     }
+    if is_us:
+        # Q(17): 매입환율 가중평균 = Σ(가격×수량×환율) / Σ(가격×수량)
+        #        메리츠_거래 G열 = 매입환율
+        formulas[17] = (
+            f"=IFERROR("
+            f"SUMPRODUCT(({ts}!$C$3:$C$502=A{r})*({ts}!$B$3:$B$502=\"매수\")"
+            f"*{ts}!$E$3:$E$502*{ts}!$F$3:$F$502*{ts}!$G$3:$G$502)"
+            f"/"
+            f"SUMPRODUCT(({ts}!$C$3:$C$502=A{r})*({ts}!$B$3:$B$502=\"매수\")"
+            f"*{ts}!$E$3:$E$502*{ts}!$F$3:$F$502)"
+            f",0)"
+        )
+        # R(18): 환차손익(₩) = (현재환율 - 매입환율) × 투자원금($)
+        formulas[18] = f"=IF(Q{r}>0,('대시보드'!$U$2-Q{r})*G{r},0)"
+        # S(19): 총수익(₩) = 평가금액($)×현재환율 - 투자원금($)×매입환율
+        formulas[19] = f"=IF(AND(I{r}>0,Q{r}>0),I{r}*'대시보드'!$U$2-G{r}*Q{r},0)"
+        # T(20): 투자원금(₩) = 투자원금($) × 매입환율
+        formulas[20] = f"=IF(Q{r}>0,G{r}*Q{r},0)"
+    return formulas
 
 
-def _add_pos_row(ws, row, ticker, name, trade_sheet, cols):
-    """포지션 시트에 새 티커 행 추가: A·B=값, C~K=수식, L~P=빈칸(AI담당)"""
-    formulas = _make_formulas(trade_sheet, row)
+def _add_pos_row(ws, row, ticker, name, trade_sheet, cols, is_us=False):
+    """포지션 시트에 새 티커 행 추가: A·B=값, C~K=수식, L~P=빈칸(AI담당)
+    is_us=True 이면 Q~T(환차손익) 수식도 추가
+    """
+    formulas = _make_formulas(trade_sheet, row, is_us=is_us)
     alt_bg   = LIGHT if row % 2 == 0 else W
 
     for ci, (_, _, fmt, h, grp) in enumerate(cols, 1):
@@ -233,18 +274,51 @@ def _add_pos_row(ws, row, ticker, name, trade_sheet, cols):
 
 
 # ══════════════════════════════════════════════════════════════════
-# 대시보드
+# 대시보드  (v5 — 3구역 재설계)
 # ══════════════════════════════════════════════════════════════════
+# 레이아웃:
+#   Row 1      : 타이틀
+#   Row 2      : 환율 (R2:T2 레이블 / U2 값 — Python 업데이트)
+#   Row 3      : 미래에셋 섹션 헤더 A3:K3  |  메리츠 섹션 헤더 M3:U3
+#   Row 4      : 카드 레이블 (미래에셋 4개 + 메리츠 4개)
+#   Row 5      : 카드 값 (큰 폰트)
+#   Row 6      : 전체 합계 섹션 헤더
+#   Row 7      : 전체 합계 레이블
+#   Row 8      : 전체 합계 값
+#   Row 10     : 보유 현황 헤더 (미래에셋 + 메리츠)
+#   Row 11     : 컬럼 헤더
+#   Row 12~    : 데이터 (포지션 시트 참조)
+# ══════════════════════════════════════════════════════════════════
+def _card(ws, lbl_rng, val_rng, label, formula, fmt,
+          lbl_bg=H_NAVY, val_bg=W, lbl_color=GOLD, val_color=H_NAVY):
+    """레이블+값 카드 한 쌍 생성"""
+    for rng in [lbl_rng, val_rng]:
+        if ':' in rng:
+            ws.merge_cells(rng)
+    lc = ws[lbl_rng.split(':')[0]]
+    lc.value = label
+    lc.fill  = _fill(lbl_bg); lc.font = _font(bold=True, color=lbl_color, size=9)
+    lc.alignment = _align(); lc.border = _hborder()
+
+    vc = ws[val_rng.split(':')[0]]
+    vc.value = formula
+    vc.fill  = _fill(val_bg)
+    vc.font  = Font(bold=True, color=val_color, size=13, name='맑은 고딕')
+    vc.alignment = _align()
+    vc.border = _hborder()
+    vc.number_format = fmt
+
+
 def _build_dashboard(wb):
     ws = wb.create_sheet('대시보드')
     ws.sheet_view.showGridLines = False
     ws.sheet_properties.tabColor = '10B981'
 
-    for r in range(1, 55):
+    for r in range(1, 65):
         for c in range(1, 22):
             ws.cell(r, c).fill = _fill(LIGHT)
 
-    # 타이틀
+    # ── Row 1: 타이틀 ──
     ws.merge_cells('A1:U1')
     t = ws['A1']
     t.value = 'GM Capital  Investment Dashboard'
@@ -253,112 +327,131 @@ def _build_dashboard(wb):
     t.alignment = _align()
     ws.row_dimensions[1].height = 34
 
-    # 환율 셀 — Python이 업데이트, 대시보드 수식이 참조 (U2)
-    ws.merge_cells('S2:T2')
-    _c(ws, 2, 19, 'USD/KRW', H_SUB, bold=True, color=W, hdr=True)
-    _c(ws, 2, 21, 1380, W, bold=True, color=H_NAVY, fmt=FMT_INT)
-    ws.column_dimensions['U'].width = 10
+    # ── Row 2: 환율 — Python이 U2를 업데이트, 모든 수식이 U2 참조 ──
+    ws.merge_cells('R2:T2')
+    _c(ws, 2, 18, 'USD/KRW 환율', H_SUB, bold=True, color=W, hdr=True)
+    _c(ws, 2, 21, 1380, W, bold=True, color=H_NAVY, fmt=FMT_INT, size=12)
+    ws.row_dimensions[2].height = 24
 
-    # ── 요약 카드 (행 4~5) ──
-    # 대시보드 수식이 포지션 시트 참조
-    dom_inv  = "SUM('미래에셋_포지션'!G:G)"
-    dom_eval = "SUM('미래에셋_포지션'!I:I)"
-    dom_pnl  = "SUM('미래에셋_포지션'!J:J)"
-    us_inv   = "SUM('메리츠_포지션'!G:G)*U2"
-    us_eval  = "SUM('메리츠_포지션'!I:I)*U2"
-    us_pnl   = "SUM('메리츠_포지션'!J:J)*U2"
+    # ── Row 3: 섹션 헤더 ──
+    ws.merge_cells('A3:K3')
+    h = ws['A3']
+    h.value = '  미래에셋  (국내 · 원화)'
+    h.fill  = _fill(H_NAVY); h.font = _font(bold=True, color=GOLD, size=11)
+    h.alignment = _align(h='left'); h.border = _hborder()
 
-    cards = [
-        ('B4:D4', 'B5:D5', '미래에셋 투자원금(₩)', f'={dom_inv}',  FMT_INT),
-        ('E4:G4', 'E5:G5', '미래에셋 평가금액(₩)', f'={dom_eval}', FMT_INT),
-        ('H4:J4', 'H5:J5', '메리츠 투자원금(₩)',   f'={us_inv}',   FMT_INT),
-        ('K4:M4', 'K5:M5', '메리츠 평가금액(₩)',   f'={us_eval}',  FMT_INT),
-        ('N4:P4', 'N5:P5', '총 손익(₩)',
-         f'={dom_pnl}+{us_pnl}', FMT_PNLI),
-        ('Q4:S4', 'Q5:S5', '전체 수익률(%)',
-         f'=IFERROR(({dom_eval}+{us_eval}-{dom_inv}-{us_inv})/({dom_inv}+{us_inv})*100,0)',
-         FMT_PCT),
-    ]
-    for h_rng, v_rng, label, formula, fmt in cards:
-        ws.merge_cells(h_rng)
-        hc = ws[h_rng.split(':')[0]]
-        hc.value = label
-        hc.fill  = _fill(H_NAVY); hc.font = _font(bold=True, color=GOLD, size=9)
-        hc.alignment = _align(); hc.border = _hborder()
+    ws.merge_cells('M3:U3')
+    h2 = ws['M3']
+    h2.value = '  메리츠  (해외 · 달러)'
+    h2.fill  = _fill('1D4ED8'); h2.font = _font(bold=True, color=W, size=11)
+    h2.alignment = _align(h='left'); h2.border = _hborder()
+    ws.row_dimensions[3].height = 22
 
-        ws.merge_cells(v_rng)
-        vc = ws[v_rng.split(':')[0]]
-        vc.value = formula
-        vc.fill  = _fill(W)
-        vc.font  = Font(bold=True, color=H_NAVY, size=13, name='맑은 고딕')
-        vc.alignment = _align()
-        vc.border = _hborder()
-        vc.number_format = fmt
+    # ── Row 4~5: 카드 (레이블 + 값) ──
+    # 미래에셋 4개 카드: A~C | D~F | G~I | J~K
+    dom_inv = "SUM('미래에셋_포지션'!G:G)"
+    _card(ws, 'A4:C4', 'A5:C5', '투자원금(₩)',
+          f'={dom_inv}', FMT_INT)
+    _card(ws, 'D4:F4', 'D5:F5', '평가금액(₩)',
+          "=SUM('미래에셋_포지션'!I:I)", FMT_INT)
+    _card(ws, 'G4:I4', 'G5:I5', '매매손익(₩)',
+          "=SUM('미래에셋_포지션'!J:J)", FMT_PNLI)
+    _card(ws, 'J4:K4', 'J5:K5', '수익률(%)',
+          f"=IFERROR(SUM('미래에셋_포지션'!J:J)/{dom_inv}*100,0)", FMT_PCT)
+
+    # 메리츠 4개 카드: M~N | O~P | Q~S | T~U
+    # (매매손익은 $ × 현재환율, 환차손익·총수익은 포지션 수식이 직접 계산)
+    _card(ws, 'M4:N4', 'M5:N5', '매매손익(₩)',
+          "=SUM('메리츠_포지션'!J:J)*U2", FMT_PNLI,
+          lbl_bg='1E3A8A', val_color='1D4ED8')
+    _card(ws, 'O4:P4', 'O5:P5', '환차손익(₩)',
+          "=SUM('메리츠_포지션'!R:R)", FMT_PNLI,
+          lbl_bg='065F46', val_color='065F46')
+    _card(ws, 'Q4:S4', 'Q5:S5', '총수익(₩)',
+          "=SUM('메리츠_포지션'!S:S)", FMT_PNLI,
+          lbl_bg='1D4ED8', val_color='1D4ED8')
+    _card(ws, 'T4:U4', 'T5:U5', '수익률(환포함)',
+          "=IFERROR(SUM('메리츠_포지션'!S:S)/SUM('메리츠_포지션'!T:T)*100,0)", FMT_PCT,
+          lbl_bg='1E3A8A', val_color='1D4ED8')
 
     ws.row_dimensions[4].height = 20
-    ws.row_dimensions[5].height = 32
+    ws.row_dimensions[5].height = 34
 
-    # ── 미래에셋 보유 테이블 (행 8~) ──
-    ws.merge_cells('A8:G8')
-    h1 = ws['A8']
-    h1.value = '  미래에셋 보유 현황 (국내 · 원화)'
-    h1.fill  = _fill(H_NAVY); h1.font = _font(bold=True, color=W, size=11)
-    h1.alignment = _align(h='left')
-    ws.row_dimensions[8].height = 24
+    # ── Row 6~8: 전체 합계 ──
+    ws.merge_cells('A6:U6')
+    g = ws['A6']
+    g.value = '  전체 합계'
+    g.fill  = _fill('0F4C2A'); g.font = _font(bold=True, color='DCFCE7', size=10)
+    g.alignment = _align(h='left'); g.border = _hborder()
+    ws.row_dimensions[6].height = 18
 
-    dom_h = ['티커','종목명','보유수량','평균단가(₩)','현재가(₩)','손익(₩)','수익률(%)']
+    tot_inv = "SUM('미래에셋_포지션'!G:G)+SUM('메리츠_포지션'!T:T)"
+    tot_pnl = "SUM('미래에셋_포지션'!J:J)+SUM('메리츠_포지션'!S:S)"
+    _card(ws, 'A7:F7',  'A8:F8',  '전체 투자원금(₩)',
+          f'={tot_inv}', FMT_INT,
+          lbl_bg='14532D', lbl_color='BBF7D0', val_bg='F0FDF4', val_color='166534')
+    _card(ws, 'G7:N7',  'G8:N8',  '전체 총손익(₩)',
+          f'={tot_pnl}', FMT_PNLI,
+          lbl_bg='14532D', lbl_color='BBF7D0', val_bg='F0FDF4', val_color='166534')
+    _card(ws, 'O7:U7',  'O8:U8',  '전체 수익률(%)',
+          f'=IFERROR(({tot_pnl})/({tot_inv})*100,0)', FMT_PCT,
+          lbl_bg='14532D', lbl_color='BBF7D0', val_bg='F0FDF4', val_color='166534')
+
+    ws.row_dimensions[7].height = 20
+    ws.row_dimensions[8].height = 36
+
+    # ── Row 10~: 보유 현황 테이블 ──
+    RH = 10  # holdings header row
+
+    # 미래에셋 보유 현황
+    ws.merge_cells(f'A{RH}:G{RH}')
+    bh = ws[f'A{RH}']
+    bh.value = '  미래에셋 보유 현황 (국내 · 원화)'
+    bh.fill  = _fill(H_NAVY); bh.font = _font(bold=True, color=W, size=11)
+    bh.alignment = _align(h='left')
+    ws.row_dimensions[RH].height = 24
+
+    dom_h    = ['티커','종목명','보유수량','평균단가(₩)','현재가(₩)','손익(₩)','수익률(%)']
     dom_fmts = [None, None, FMT_INT, FMT_INT, FMT_INT, FMT_PNLI, FMT_PCT]
+    dom_col  = {1:'A', 2:'B', 3:'E', 4:'F', 5:'H', 6:'J', 7:'K'}
     for ci, (h, f) in enumerate(zip(dom_h, dom_fmts), 1):
-        _c(ws, 9, ci, h, H_SUB, bold=True, color=W, fmt=f, hdr=True)
-    ws.row_dimensions[9].height = 20
+        _c(ws, RH+1, ci, h, H_SUB, bold=True, color=W, fmt=f, hdr=True)
+    ws.row_dimensions[RH+1].height = 20
 
-    for r in range(10, 20):
-        for ci, (_, fmt) in enumerate(zip(dom_h, dom_fmts), 1):
-            bg = W if r % 2 == 0 else LIGHT
-            pr = r - 8  # 포지션 시트 행 (row 2 = 첫 티커)
-            if ci == 1:
-                f = f"='미래에셋_포지션'!A{pr}"
-            elif ci == 2:
-                f = f"='미래에셋_포지션'!B{pr}"
-            elif ci == 3:
-                f = f"='미래에셋_포지션'!E{pr}"   # 보유수량
-            elif ci == 4:
-                f = f"='미래에셋_포지션'!F{pr}"   # 평균단가
-            elif ci == 5:
-                f = f"='미래에셋_포지션'!H{pr}"   # 현재가
-            elif ci == 6:
-                f = f"='미래에셋_포지션'!J{pr}"   # 손익
-            else:
-                f = f"='미래에셋_포지션'!K{pr}"   # 수익률
-            _c(ws, r, ci, f, bg, fmt=fmt, size=10)
+    for r in range(RH+2, RH+14):   # 12행 = 최대 12종목
+        bg = W if r % 2 == 0 else LIGHT
+        pr = r - RH
+        for ci, fmt in enumerate(dom_fmts, 1):
+            _c(ws, r, ci, f"='미래에셋_포지션'!{dom_col[ci]}{pr}", bg, fmt=fmt, size=10)
         ws.row_dimensions[r].height = 20
 
-    # ── 메리츠 보유 테이블 ──
-    ws.merge_cells('I8:P8')
-    h2 = ws['I8']
-    h2.value = '  메리츠 보유 현황 (해외 · 달러)'
-    h2.fill  = _fill('1D4ED8'); h2.font = _font(bold=True, color=W, size=11)
-    h2.alignment = _align(h='left')
+    # 메리츠 보유 현황
+    ws.merge_cells(f'I{RH}:P{RH}')
+    bh2 = ws[f'I{RH}']
+    bh2.value = '  메리츠 보유 현황 (해외 · 달러)'
+    bh2.fill  = _fill('1D4ED8'); bh2.font = _font(bold=True, color=W, size=11)
+    bh2.alignment = _align(h='left')
 
     us_h    = ['티커','종목명','보유수량','평균단가($)','현재가($)','손익($)','수익률(%)']
     us_fmts = [None, None, FMT_INT, FMT_DEC4, FMT_DEC2, FMT_PNL, FMT_PCT]
+    us_col  = {1:'A', 2:'B', 3:'E', 4:'F', 5:'H', 6:'J', 7:'K'}
     for ci, (h, f) in enumerate(zip(us_h, us_fmts), 9):
-        _c(ws, 9, ci, h, '1E40AF', bold=True, color=W, fmt=f, hdr=True)
+        _c(ws, RH+1, ci, h, '1E40AF', bold=True, color=W, fmt=f, hdr=True)
 
-    for r in range(10, 20):
-        pr = r - 8
-        for ci, (_, fmt) in enumerate(zip(us_h, us_fmts), 9):
-            bg = W if r % 2 == 0 else 'EFF6FF'
-            oci = ci - 8  # 1-based offset for column letter
-            col_map = {1:'A',2:'B',3:'E',4:'F',5:'H',6:'J',7:'K'}
-            col = col_map[oci]
-            f   = f"='메리츠_포지션'!{col}{pr}"
-            _c(ws, r, ci, f, bg, fmt=fmt, size=10)
+    for r in range(RH+2, RH+14):
+        bg = W if r % 2 == 0 else 'EFF6FF'
+        pr = r - RH
+        for ci, fmt in enumerate(us_fmts, 1):
+            col = us_col[ci]
+            _c(ws, r, ci+8, f"='메리츠_포지션'!{col}{pr}", bg, fmt=fmt, size=10)
         ws.row_dimensions[r].height = 20
 
-    # 컬럼 너비
-    for col, w in [('A',9),('B',22),('C',12),('D',14),('E',14),('F',14),('G',12),
-                   ('H',2), ('I',9),('J',22),('K',12),('L',14),('M',14),('N',14),('O',12)]:
+    # ── 컬럼 너비 ──
+    for col, w in [
+        ('A',9),('B',22),('C',12),('D',14),('E',14),('F',14),('G',12),
+        ('H',2), ('I',9),('J',22),('K',12),('L',12),('M',12),('N',12),
+        ('O',13),('P',13),('Q',13),('R',13),('S',13),('T',13),('U',12),
+    ]:
         ws.column_dimensions[col].width = w
 
 
@@ -393,22 +486,29 @@ def _init_holdings(wb):
         (today, '매수', '232080', 'TIGER 코스닥150',         17668, 220, '초기보유'),
         (today, '매수', '453850', 'ACE 미국30년국채액티브',   7908, 372, '초기보유'),
     ]
+    # 메리츠_거래: 8컬럼 — 날짜,구분,티커,종목명,가격($),수량,매입환율,메모
     us_rows = [
-        (today, '매수', 'MU',   'Micron Technology',        708.46,   2, '초기보유'),
-        (today, '매수', 'IEMG', 'iShares Core MSCI EM',    70.5376,  13, '초기보유'),
-        (today, '매수', 'SPYM', 'SPDR Portfolio S&P500',   80.7258,  24, '초기보유'),
-        (today, '매수', 'GGLL', 'GraniteShares 2x GOOGL', 113.7276,  17, '초기보유'),
-        (today, '매수', 'QLD',  'ProShares Ultra QQQ 2X',  85.0420,  24, '초기보유'),
-        (today, '매수', 'TSM',  'TSMC ADR',                406.7400,   1, '초기보유'),
+        (today, '매수', 'MU',   'Micron Technology',        708.46,   2, 1501.5,  '초기보유'),
+        (today, '매수', 'IEMG', 'iShares Core MSCI EM',    70.5376,  13, 1467.48, '초기보유'),
+        (today, '매수', 'SPYM', 'SPDR Portfolio S&P500',   80.7258,  24, 1464.67, '초기보유'),
+        (today, '매수', 'GGLL', 'GraniteShares 2x GOOGL', 113.7276,  17, 1492.42, '초기보유'),
+        (today, '매수', 'QLD',  'ProShares Ultra QQQ 2X',  85.0420,  24, 1463.62, '초기보유'),
+        (today, '매수', 'TSM',  'TSMC ADR',                406.7400,   1, 1499.79, '초기보유'),
     ]
-    fmts = [None, None, None, None, FMT_DEC4, FMT_INT, None]
+    fmts_dom = [None, None, None, None, FMT_INT, FMT_INT, None]           # 7 cols
+    fmts_us  = [None, None, None, None, FMT_DEC4, FMT_INT, FMT_INT, None] # 8 cols
 
-    for sheet, rows in [('미래에셋_거래', dom_rows), ('메리츠_거래', us_rows)]:
-        ws = wb[sheet]
-        for i, rd in enumerate(rows, 3):
-            bg = LIGHT if i % 2 == 1 else W
-            for ci, val in enumerate(rd, 1):
-                _c(ws, i, ci, val, bg, fmt=fmts[ci-1])
+    ws_dom = wb['미래에셋_거래']
+    for i, rd in enumerate(dom_rows, 3):
+        bg = LIGHT if i % 2 == 1 else W
+        for ci, val in enumerate(rd, 1):
+            _c(ws_dom, i, ci, val, bg, fmt=fmts_dom[ci-1])
+
+    ws_us = wb['메리츠_거래']
+    for i, rd in enumerate(us_rows, 3):
+        bg = LIGHT if i % 2 == 1 else W
+        for ci, val in enumerate(rd, 1):
+            _c(ws_us, i, ci, val, bg, fmt=fmts_us[ci-1])
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -594,7 +694,7 @@ def update_positions(wb, trade_sheet, pos_sheet, is_us, prices):
         # ① 신규 티커 → 수식 행 추가
         if ticker not in in_sheet:
             next_row = max(in_sheet.values(), default=1) + 1
-            _add_pos_row(ws_pos, next_row, ticker, name, trade_sheet, cols)
+            _add_pos_row(ws_pos, next_row, ticker, name, trade_sheet, cols, is_us=is_us)
             in_sheet[ticker] = next_row
             print(f'    [신규] {ticker} → row {next_row}')
 
@@ -709,8 +809,8 @@ def main():
         print('엑셀 새로 생성 중...')
         wb = openpyxl.Workbook()
         wb.remove(wb.active)
-        _build_trade_sheet(wb, '미래에셋_거래', '원화(₩)', 'C9A84C')
-        _build_trade_sheet(wb, '메리츠_거래',   '달러($)',  '3B82F6')
+        _build_trade_sheet(wb, '미래에셋_거래', '원화(₩)', 'C9A84C', TRADE_COLS_KRW)
+        _build_trade_sheet(wb, '메리츠_거래',   '달러($)',  '3B82F6', TRADE_COLS_USD)
         _build_position(wb, '미래에셋_포지션', POS_COLS_KRW, 'B45309')
         _build_position(wb, '메리츠_포지션',   POS_COLS_USD, '1D4ED8')
         _build_dashboard(wb)
