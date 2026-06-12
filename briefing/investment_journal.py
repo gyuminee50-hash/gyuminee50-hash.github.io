@@ -327,7 +327,12 @@ def _build_dashboard(wb):
     t.alignment = _align()
     ws.row_dimensions[1].height = 34
 
-    # ── Row 2: 환율 — Python이 U2를 업데이트, 모든 수식이 U2 참조 ──
+    # ── Row 2: 업데이트 시각(M~Q) + 환율(R~U) — 모두 Python이 업데이트 ──
+    ws.merge_cells('M2:O2')
+    _c(ws, 2, 13, '마지막 업데이트', H_SUB, bold=True, color=W, hdr=True)
+    ws.merge_cells('P2:Q2')
+    _c(ws, 2, 16, '-', LIGHT, bold=False, color=H_NAVY, size=9)   # Python이 채움
+
     ws.merge_cells('R2:T2')
     _c(ws, 2, 18, 'USD/KRW 환율', H_SUB, bold=True, color=W, hdr=True)
     _c(ws, 2, 21, 1380, W, bold=True, color=H_NAVY, fmt=FMT_INT, size=12)
@@ -725,8 +730,10 @@ def update_positions(wb, trade_sheet, pos_sheet, is_us, prices):
 
 
 def update_dashboard_rate(wb, rate):
-    """대시보드 환율 셀(U2) 업데이트"""
-    wb['대시보드']['U2'].value = rate
+    """대시보드 환율(U2) + 업데이트 시각(P2) 동시 갱신"""
+    ws = wb['대시보드']
+    ws['U2'].value = rate
+    ws['P2'].value = datetime.now().strftime('%m/%d %H:%M')
 
 
 def _write_history(wb, sheet, ticker, content):
@@ -765,8 +772,14 @@ def process_all():
             update_positions(wb, '메리츠_거래',   '메리츠_포지션',   True,  prices)
             update_dashboard_rate(wb, rate)
 
-            wb.save(EXCEL_PATH)
-            print(f'  저장완료 ({datetime.now().strftime("%H:%M:%S")})')
+            for attempt in range(8):
+                try:
+                    wb.save(EXCEL_PATH)
+                    print(f'  저장완료 ({datetime.now().strftime("%H:%M:%S")})')
+                    break
+                except PermissionError:
+                    print(f'  [저장대기] 엑셀 열려있음 — {attempt+1}회 재시도...')
+                    time.sleep(3)
 
         except Exception as e:
             print(f'  [오류] {e}')
