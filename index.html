@@ -402,7 +402,7 @@
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
   <div class="status-item"><strong>9</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
-  <div class="status-item"><strong id="sb-spy">—</strong>SPY</div>
+  <div class="status-item"><strong id="sb-vix">—</strong>VIX</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
 
@@ -675,13 +675,13 @@
   // ── 시장 현황 (매크로 지표 — 보유 종목 제외) ──
   // 엑셀에 이미 있는 보유 종목 시세는 표시 안 함
   const MKT_TICKERS = [
-    {s:'SPY',   n:'S&P 500',        unit:'$'},
-    {s:'QQQ',   n:'NASDAQ 100',     unit:'$'},
-    {s:'^VIX',  n:'VIX 공포지수',   unit:''},
-    {s:'GLD',   n:'금 (Gold ETF)',   unit:'$'},
-    {s:'USO',   n:'원유 (Oil ETF)',  unit:'$'},
-    {s:'^TNX',  n:'미 10년 국채금리', unit:'%'},
-    {s:'DX-Y.NYB', n:'달러 인덱스',  unit:''},
+    {s:'^VIX',     n:'VIX 공포지수',    unit:''},
+    {s:'^TNX',     n:'미 10년 국채금리', unit:'%'},
+    {s:'GLD',      n:'금 (Gold ETF)',    unit:'$'},
+    {s:'USO',      n:'원유 (Oil ETF)',   unit:'$'},
+    {s:'DX-Y.NYB', n:'달러 인덱스',     unit:''},
+    {s:'SOXX',     n:'반도체 지수 ETF', unit:'$'},
+    {s:'^DJI',     n:'다우존스',        unit:''},
   ];
 
   async function loadMarket() {
@@ -735,9 +735,9 @@
           <div class="mkt-chg ${cls}">${sign}${chgPct.toFixed(2)}%</div>
           <div class="mkt-name">${t.n}</div>
         </div>`;
-        if (t.s === 'SPY') {
-          const sbSpy = document.getElementById('sb-spy');
-          if (sbSpy) { sbSpy.textContent = `$${q.regularMarketPrice.toFixed(0)} (${sign}${chgPct.toFixed(2)}%)`; sbSpy.style.color = cls === 'up' ? 'var(--green)' : 'var(--red)'; }
+        if (t.s === '^VIX') {
+          const sbVix = document.getElementById('sb-vix');
+          if (sbVix) { sbVix.textContent = q.regularMarketPrice.toFixed(1); sbVix.style.color = q.regularMarketPrice > 25 ? 'var(--red)' : q.regularMarketPrice > 18 ? '#f97316' : 'var(--green)'; }
         }
       }
 
