@@ -89,24 +89,27 @@
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(201,168,76,0.2); }
 
-  /* DEPARTMENTS */
-  .dept-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
-  .dept-card {
+  /* MARKET GRID */
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px; margin-bottom: 48px;
+  }
+  .mkt-loading { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
+  .mkt-card {
     background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px; padding: 24px; position: relative; overflow: hidden;
-    transition: transform .2s, border-color .2s;
+    border-radius: 12px; padding: 16px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: border-color .2s;
   }
-  .dept-card:hover { transform: translateY(-3px); border-color: rgba(201,168,76,0.3); }
-  .dept-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--gold), transparent);
-  }
-  .dept-icon { font-size: 28px; margin-bottom: 12px; }
-  .dept-name { font-size: 13px; color: var(--text-dim); margin-bottom: 4px; letter-spacing: 1px; }
-  .dept-head { font-size: 22px; font-weight: 800; color: var(--gold); margin-bottom: 8px; letter-spacing: 1px; }
-  .dept-role { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
-  .dept-status { display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 11px; color: var(--green); }
-  .dept-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  .mkt-card:hover { border-color: rgba(201,168,76,0.3); }
+  .mkt-symbol { font-size: 12px; font-weight: 800; letter-spacing: 1px; color: var(--gold); }
+  .mkt-price { font-size: 18px; font-weight: 700; }
+  .mkt-chg { font-size: 12px; font-weight: 600; }
+  .mkt-name { font-size: 10px; color: var(--text-dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mkt-card .up { color: var(--green); }
+  .mkt-card .dn { color: var(--red); }
+  .mkt-err { color: var(--text-dim); font-size: 12px; padding: 20px 0; }
 
   /* OPS CENTER */
   .ops-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 48px; }
@@ -398,8 +401,8 @@
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
   <div class="status-item"><strong>9</strong>자동화 스크립트</div>
-  <div class="status-item"><strong>6</strong>모니터링 종목</div>
-  <div class="status-item"><strong>4</strong>활성 부서</div>
+  <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
+  <div class="status-item"><strong id="sb-spy">—</strong>SPY</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
 
@@ -415,72 +418,12 @@
 
 <main>
 
-  <div class="section-title">운영 총괄 · Operations Director</div>
-  <div class="max-card">
-    <div class="max-avatar">M</div>
-    <div class="max-info">
-      <h3>ROY</h3>
-      <div class="title">실무총괄 사장 · GM Capital Operations</div>
-      <p>GM Capital의 실무를 총괄합니다. 이사장 김규민의 지시를 받아 4개 부서(INF·DAT·AP·DES)를 조율하고, 브리핑·리포트·홈페이지 업그레이드를 실행합니다. 매일 저녁 업그레이드 제안을 드립니다.</p>
-    </div>
+  <div class="section-title">📊 시장 현황 · Market Snapshot</div>
+  <div id="market-grid" class="market-grid">
+    <div class="mkt-loading">시세 로딩 중...</div>
   </div>
 
-  <div id="activitylog" class="section-title">📋 부서별 활동 로그 · Live Activity</div>
-  <div class="log-card">
-    <div class="log-updated" id="log-updated">로딩 중... (09:00 보고 후 업데이트)</div>
-    <div class="log-grid">
-      <div class="log-dept">
-        <div class="log-dept-head">📊 DAT — 보유 종목</div>
-        <div id="log-dat"><span class="log-line">데이터 대기중</span></div>
-      </div>
-      <div class="log-dept">
-        <div class="log-dept-head">📡 INF — 기사 수집</div>
-        <div id="log-inf"><span class="log-line">데이터 대기중</span></div>
-      </div>
-      <div class="log-dept">
-        <div class="log-dept-head">🔍 AP — 경보 현황</div>
-        <div id="log-ap"><span class="log-line">데이터 대기중</span></div>
-      </div>
-      <div class="log-dept">
-        <div class="log-dept-head">🎨 DES — 홈페이지</div>
-        <div id="log-des"><span class="log-line">데이터 대기중</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="departments" class="section-title">부서 현황 · Departments</div>
-  <div class="dept-grid">
-    <div class="dept-card">
-      <div class="dept-icon">📡</div>
-      <div class="dept-name">정보수집부</div>
-      <div class="dept-head">INF</div>
-      <div class="dept-role">국내외 주식·투자 뉴스 실시간 수집. 한국 3개, 미국 3개 선별.</div>
-      <div class="dept-status">Active · 수집 대기중</div>
-    </div>
-    <div class="dept-card">
-      <div class="dept-icon">📊</div>
-      <div class="dept-name">데이터분석부</div>
-      <div class="dept-head">DAT</div>
-      <div class="dept-role">수집된 기사를 CEO 포트폴리오 기준으로 분석·점수화·선별.</div>
-      <div class="dept-status">Active · 분석 대기중</div>
-    </div>
-    <div class="dept-card">
-      <div class="dept-icon">🔍</div>
-      <div class="dept-name">검수부</div>
-      <div class="dept-head">AP</div>
-      <div class="dept-role">기사 품질, 중복, 관련도 최종 검증. 브리핑 발송 전 승인.</div>
-      <div class="dept-status">Active · 검수 대기중</div>
-    </div>
-    <div class="dept-card">
-      <div class="dept-icon">🎨</div>
-      <div class="dept-name">디자인부</div>
-      <div class="dept-head">DES</div>
-      <div class="dept-role">홈페이지·브리핑 포맷 디자인. 시각화 및 UI 업그레이드.</div>
-      <div class="dept-status">Active · 대기중</div>
-    </div>
-  </div>
-
-  <div class="section-title">운영 스케줄 · Daily Schedule</div>
+  <div class="section-title">📅 자동화 스케줄 · Daily Schedule</div>
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>일일 스케줄</h3>
@@ -618,36 +561,6 @@
 
   </div>
 
-  <!-- ── 하드코딩 체크 현황 ── -->
-  <div class="section-title">🔍 코드 품질 체크 · Hardcoding Audit</div>
-  <div class="hc-card">
-    <div class="hc-row">
-      <div class="hc-icon">✅</div>
-      <div class="hc-file">config.json</div>
-      <div class="hc-text hc-ok">API 키·텔레그램 토큰·종목수 전부 설정 파일 관리. .gitignore 처리 완료. GitHub 노출 없음.</div>
-    </div>
-    <div class="hc-row">
-      <div class="hc-icon">✅</div>
-      <div class="hc-file">groq_client.py</div>
-      <div class="hc-text hc-ok">Groq URL·모델명 공통 모듈 통합. 5개 스크립트 중복 제거 완료. 모델 변경 시 1곳만 수정.</div>
-    </div>
-    <div class="hc-row">
-      <div class="hc-icon">✅</div>
-      <div class="hc-file">llm_translate.py</div>
-      <div class="hc-text hc-ok">제목·불릿 번역 전부 Groq LLM. 정규식·하드코딩 패턴 매칭 0개. 실패 시 Google Translate fallback.</div>
-    </div>
-    <div class="hc-row">
-      <div class="hc-icon">⚠️</div>
-      <div class="hc-file">morning_briefing.py<br><span style="font-weight:400;color:rgba(255,255,255,0.3)">_IMPL_RULES</span></div>
-      <div class="hc-text hc-warn">투자 시사점 로직이 6종목 기준으로 작성됨. 포트폴리오 변경 시 수동 업데이트 필요. LLM 대체 불가한 정밀 비즈니스 로직 — 허용 가능.</div>
-    </div>
-    <div class="hc-row">
-      <div class="hc-icon">⚠️</div>
-      <div class="hc-file">macro_briefing.py<br><span style="font-weight:400;color:rgba(255,255,255,0.3)">MACRO_CALENDAR</span></div>
-      <div class="hc-text hc-warn">2026년 경제 지표 캘린더 하드코딩. 2027년 1월 업데이트 필요. 연 1회 갱신 — 허용 가능.</div>
-    </div>
-  </div>
-
   <div id="sectoranalysis" class="section-title">📈 유망 섹터 분석 · ROY Sector Pick</div>
   <div class="sector-card">
     <div class="sector-updated" id="sector-updated">매주 일요일 08:30 자동 업데이트</div>
@@ -689,8 +602,7 @@
 </main>
 
 <footer>
-  <strong>GM Capital</strong> · 이사장 김규민 · 실무총괄 사장 ROY<br>
-  INF (정보수집) · DAT (데이터분석) · AP (검수) · DES (디자인)<br><br>
+  <strong>GM Capital</strong> · 이사장 김규민 · 실무총괄 ROY<br><br>
   <span id="footer-time"></span>
 </footer>
 
@@ -760,100 +672,78 @@
   }
   loadSectorData();
 
-  // 활동 로그 로드
-  async function loadActivityLog() {
+  // ── 시장 현황 (보유 종목 + 주요 지수) ──
+  const MKT_TICKERS = [
+    {s:'TSM',  n:'TSMC'},
+    {s:'MU',   n:'Micron'},
+    {s:'GGLL', n:'GraniteShares 2x GOOGL'},
+    {s:'QLD',  n:'ProShares Ultra QQQ'},
+    {s:'IEMG', n:'iShares EM'},
+    {s:'SPYM', n:'SPDR S&P500'},
+    {s:'SPY',  n:'S&P 500 ETF'},
+    {s:'QQQ',  n:'NASDAQ 100 ETF'},
+  ];
+
+  async function loadMarket() {
+    const grid = document.getElementById('market-grid');
     try {
-      const r = await fetch('activity_log.json?t=' + Date.now());
-      if (!r.ok) throw new Error('no log');
-      const d = await r.json();
+      // USD/KRW
+      let krw = null;
+      try {
+        const fxR = await fetch('https://open.er-api.com/v6/latest/USD');
+        const fxD = await fxR.json();
+        krw = Math.round(fxD.rates.KRW);
+      } catch(e) {}
 
-      document.getElementById('log-updated').textContent = '마지막 업데이트: ' + (d.updated || '—');
+      // 주식 시세 (Yahoo Finance via CORS proxy)
+      const syms = MKT_TICKERS.map(t => t.s).join(',');
+      const yfUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,shortName`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yfUrl)}`;
+      const pr = await fetch(proxyUrl, {cache: 'no-store'});
+      const pw = await pr.json();
+      const quotes = JSON.parse(pw.contents).quoteResponse.result;
 
-      // DAT — 주가
-      const datEl = document.getElementById('log-dat');
-      if (d.portfolio && d.portfolio.length) {
-        datEl.innerHTML = d.portfolio.map(p => {
-          const cls = p.chg >= 0 ? 'up' : 'dn';
-          const sign = p.chg >= 0 ? '+' : '';
-          return `<div class="log-row">
-            <span class="log-sym">${p.sym}</span>
-            <span class="log-chg ${cls}">${sign}${p.chg.toFixed(2)}%</span>
-            <span class="log-price">$${p.price.toFixed(2)}</span>
-          </div>`;
-        }).join('');
-      } else {
-        datEl.innerHTML = '<span class="log-line">주가 데이터 없음</span>';
+      let html = '';
+
+      // 환율 카드
+      if (krw) {
+        html += `<div class="mkt-card">
+          <div class="mkt-symbol">USD/KRW</div>
+          <div class="mkt-price">${krw.toLocaleString()}원</div>
+          <div class="mkt-name">달러 원화 환율</div>
+        </div>`;
+        // 상태바 업데이트
+        const sbEl = document.getElementById('sb-usdkrw');
+        if (sbEl) sbEl.textContent = krw.toLocaleString() + '원';
       }
 
-      // INF — 기사 수집
-      const infEl = document.getElementById('log-inf');
-      if (d.inf) {
-        const kr = d.inf.kr_count || 0;
-        const us = d.inf.us_count || 0;
-        infEl.innerHTML = `
-          <div class="log-line">🇰🇷 한국 <b style="color:#e0e6f0">${kr}건</b></div>
-          <div class="log-line" style="margin-bottom:4px">${(d.inf.kr_sources||[]).join(', ') || '—'}</div>
-          <div class="log-line">🇺🇸 미국 <b style="color:#e0e6f0">${us}건</b></div>
-          <div class="log-line">${(d.inf.us_sources||[]).join(', ') || '—'}</div>`;
-      }
-
-      // AP — 경보
-      const apEl = document.getElementById('log-ap');
-      const alerts = d.ap && d.ap.alerts ? d.ap.alerts : [];
-      if (alerts.length) {
-        apEl.innerHTML = alerts.map(a => {
-          const label = a.includes('52high') ? '52주 고가 근접' : a.includes('52low') ? '52주 저가 근접' : a;
-          const sym   = a.split('_')[0];
-          return `<div class="log-alert">⚠️ ${sym}: ${label}</div>`;
-        }).join('');
-      } else {
-        apEl.innerHTML = '<div class="log-ok">✓ 전 종목 이상 없음</div>';
-      }
-
-      // DES — 홈페이지
-      document.getElementById('log-des').innerHTML =
-        `<div class="log-ok">✓ 활동 로그 업로드 완료</div>
-         <div class="log-line">${d.updated || '—'}</div>`;
-
-      // VIX + Fear & Greed — activity_log에서 읽기
-      if (d.vix) {
-        const vEl = document.getElementById('vix-val');
-        const sEl = document.getElementById('vix-state');
-        vEl.textContent = d.vix.value;
-        sEl.textContent = d.vix.state;
-        const v = d.vix.value;
-        vEl.style.color = v < 15 ? '#22c55e' : v < 20 ? '#84cc16' : v < 25 ? '#eab308' : v < 30 ? '#f97316' : '#ef4444';
-      }
-      if (d.fg) {
-        const numEl = document.getElementById('fg-num');
-        numEl.textContent = d.fg.value;
-        numEl.style.color = fgColor(d.fg.value);
-        document.getElementById('fg-lbl').textContent = d.fg.label || '—';
-        const canvas = document.getElementById('fg-canvas');
-        drawFG(canvas, d.fg.value);
-        if (d.fg.prev !== null && d.fg.prev !== undefined) {
-          document.getElementById('fg-prev').textContent = `전일 ${d.fg.prev} (${fgLabel(d.fg.prev)})`;
+      // 종목 카드
+      for (const q of quotes) {
+        const chgPct = q.regularMarketChangePercent || 0;
+        const chgAmt = q.regularMarketChange || 0;
+        const cls  = chgPct >= 0 ? 'up' : 'dn';
+        const sign = chgPct >= 0 ? '+' : '';
+        const name = MKT_TICKERS.find(t => t.s === q.symbol)?.n || q.shortName || q.symbol;
+        html += `<div class="mkt-card">
+          <div class="mkt-symbol">${q.symbol}</div>
+          <div class="mkt-price ${cls}">$${q.regularMarketPrice.toFixed(2)}</div>
+          <div class="mkt-chg ${cls}">${sign}${chgPct.toFixed(2)}%&nbsp;(${sign}${chgAmt.toFixed(2)})</div>
+          <div class="mkt-name">${name}</div>
+        </div>`;
+        if (q.symbol === 'SPY') {
+          const sbSpy = document.getElementById('sb-spy');
+          if (sbSpy) sbSpy.textContent = `$${q.regularMarketPrice.toFixed(0)} (${sign}${chgPct.toFixed(2)}%)`;
+          if (sbSpy) sbSpy.style.color = cls === 'up' ? 'var(--green)' : 'var(--red)';
         }
       }
 
+      grid.innerHTML = html || '<div class="mkt-err">데이터 없음</div>';
     } catch(e) {
-      document.getElementById('log-updated').textContent = '09:00 보고 후 자동 업데이트됩니다';
+      grid.innerHTML = '<div class="mkt-err">시세 로드 실패 — 잠시 후 자동 재시도</div>';
     }
   }
-  loadActivityLog();
-  setInterval(loadActivityLog, 300000);
-
-  // 환율 — 헤더 우측 상단만
-  async function updateFX() {
-    try {
-      const r = await fetch('https://open.er-api.com/v6/latest/USD');
-      const data = await r.json();
-      const krw = Math.round(data.rates.KRW);
-      document.getElementById('header-fx-val').textContent = krw.toLocaleString('ko-KR');
-    } catch(e) {}
-  }
-  updateFX();
-  setInterval(updateFX, 300000);
+  loadMarket();
+  setInterval(loadMarket, 60000);  // 1분마다 자동 갱신
 
   // 공포탐욕 게이지
   const FG_SEGS = [

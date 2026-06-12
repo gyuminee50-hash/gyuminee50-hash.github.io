@@ -99,22 +99,20 @@ def main():
     while True:
         now  = datetime.now()
         h, m = now.hour, now.minute
+        today_str = date.today().isoformat()
 
-        if m == 0:   # 매 정시에만 체크
-            today_str = date.today().isoformat()
+        # 날짜 바뀌면 실행 기록 초기화
+        s = _load_state()
+        if s['date'] != today_str:
+            with open(STATE, 'w') as f:
+                json.dump({'date': today_str, 'done': []}, f)
 
-            # 날짜 바뀌면 실행 기록 초기화
-            s = _load_state()
-            if s['date'] != today_str:
-                with open(STATE, 'w') as f:
-                    json.dump({'date': today_str, 'done': []}, f)
+        for sched_h, sched_m, script, job_id, condition in SCHEDULES:
+            if h == sched_h and m == sched_m:
+                if condition is None or condition():
+                    _run(script, job_id)
 
-            for sched_h, sched_m, script, job_id, condition in SCHEDULES:
-                if h == sched_h and m == sched_m:
-                    if condition is None or condition():
-                        _run(script, job_id)
-
-        time.sleep(30)   # 30초마다 체크
+        time.sleep(30)   # 30초마다 체크 — _already_done이 중복실행 방지
 
 if __name__ == '__main__':
     main()
