@@ -332,6 +332,7 @@
   .auto-card.weekly::before { background: linear-gradient(90deg,#3b82f6,transparent); }
   .auto-card.signal::before { background: linear-gradient(90deg,#f97316,transparent); }
   .auto-card.report::before { background: linear-gradient(90deg,var(--gold),transparent); }
+  .auto-card.cond::before   { background: linear-gradient(90deg,#eab308,transparent); }
   .auto-badge {
     display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px;
     padding: 2px 8px; border-radius: 4px; margin-bottom: 10px;
@@ -340,6 +341,7 @@
   .auto-badge.weekly { background: rgba(59,130,246,.1); color: #60a5fa; }
   .auto-badge.signal { background: rgba(249,115,22,.1); color: #f97316; }
   .auto-badge.report { background: rgba(201,168,76,.1); color: var(--gold); }
+  .auto-badge.cond   { background: rgba(234,179,8,.1);  color: #eab308; }
   .auto-time  { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 4px; line-height: 1; }
   .auto-name  { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
   .auto-desc  { font-size: 11px; color: var(--text-dim); line-height: 1.6; }
@@ -430,82 +432,87 @@
     <div class="mkt-loading">시세 로딩 중...</div>
   </div>
 
-  <div class="section-title">📅 자동화 스케줄 · Daily Schedule</div>
+  <div class="section-title">📅 자동화 스케줄 · Automation Schedule</div>
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
-      <h3>일일 스케줄</h3>
-      <div class="sub">자동화 운영 타임라인</div>
+      <h3>텔레그램 수신 스케줄</h3>
+      <div class="sub">13개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영</div>
       <div class="schedule-list">
-        <div class="sched-label">▸ 매일 DAILY</div>
 
-        <div class="sched-item">
-          <div class="sched-dot active"></div>
-          <div class="sched-time">04:00</div>
-          <div class="sched-desc">매크로 브리핑 — FOMC 금리 결정 후 포트폴리오 영향 분석 <span class="sched-badge new">신규</span></div>
-        </div>
+        <!-- ── 매일 (무조건 옴) ── -->
+        <div class="sched-label">▸ 매일 DAILY &nbsp;<span style="font-size:9px;color:var(--green);letter-spacing:0">무조건 매일 수신</span></div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">06:30</div>
-          <div class="sched-desc">모닝 브리핑 — 한국 3건 + 미국 3건 뉴스, Groq LLM 번역·불릿 요약 <span class="sched-badge new">신규</span></div>
-        </div>
-        <div class="sched-item">
-          <div class="sched-dot active"></div>
-          <div class="sched-time">07:30</div>
-          <div class="sched-desc">실적 발표 알림 — D-2 사전 알림, 예상 EPS·매출 + 체크포인트 <span class="sched-badge new">신규</span></div>
+          <div class="sched-desc">모닝 브리핑 — 한국 3건 + 미국 3건 뉴스, Groq LLM 번역·불릿 요약</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">09:00</div>
-          <div class="sched-desc">9시 브리핑 — 보유종목 현재가 + 장중 뉴스 수집 (DAT·INF·AP·DES) <span class="sched-badge existing">기존</span></div>
-        </div>
-        <div class="sched-item">
-          <div class="sched-dot active"></div>
-          <div class="sched-time">09:00</div>
-          <div class="sched-desc">가격 알림 — 52주 신고/신저 돌파, 이상 거래량, 주간 실적 사전 알림 <span class="sched-badge existing">기존</span></div>
+          <div class="sched-desc">9시 브리핑 — 보유종목 현재가 + 장중 뉴스 수집 (DAT·INF·AP·DES 파트)</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">15:00</div>
-          <div class="sched-desc">투자 프로포절 현황 — AI 제안 Top 3 요약 <span class="sched-badge existing">기존</span></div>
+          <div class="sched-desc">투자 프로포절 현황 — AI 제안 Top 3 요약</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">18:00</div>
-          <div class="sched-desc">일일 마무리 리포트 — 당일 수익률 + 주요 뉴스 요약 <span class="sched-badge new">신규</span></div>
+          <div class="sched-desc">일일 마무리 리포트 — 당일 수익률 + 주요 뉴스 요약</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">21:00</div>
-          <div class="sched-desc">개장 전 속보 — 미국 개장 30분 전 핵심 뉴스 1~3건 + S&amp;P 선물 <span class="sched-badge existing">기존</span></div>
+          <div class="sched-desc">개장 전 속보 — 미국 개장 30분 전 핵심 뉴스 1~3건 + S&amp;P 선물</div>
+        </div>
+
+        <!-- ── 조건부 (해당 이슈 있을 때만 옴) ── -->
+        <div class="sched-label" style="margin-top:16px">▸ 조건부 CONDITIONAL &nbsp;<span style="font-size:9px;color:#eab308;letter-spacing:0">해당 이슈 있을 때만 수신</span></div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
+          <div class="sched-time">07:30</div>
+          <div class="sched-desc">실적 발표 알림 — 보유·관심 16종목 실적 D-2/D-1/당일 해당 시만, 예상 EPS·매출</div>
         </div>
         <div class="sched-item">
-          <div class="sched-dot active"></div>
+          <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
+          <div class="sched-time">09:00</div>
+          <div class="sched-desc">가격 알림 — 보유 5종목 52주 신고/신저 돌파 or 이상 거래량 발생 시만</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
           <div class="sched-time">22:30</div>
-          <div class="sched-desc">매크로 브리핑 — CPI·NFP·GDP 발표 후 포트폴리오 영향 분석 <span class="sched-badge new">신규</span></div>
+          <div class="sched-desc">매크로 브리핑 — CPI·NFP·GDP 발표일만 (08:30 ET 발표 후 KST 22:30)</div>
         </div>
         <div class="sched-item">
-          <div class="sched-dot active"></div>
+          <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
+          <div class="sched-time">04:00</div>
+          <div class="sched-desc">매크로 브리핑 — FOMC 금리 결정일만 (14:00 ET 발표 후 KST 04:00)</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#f97316;background:#f97316"></div>
           <div class="sched-time">23~06시</div>
-          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간, 거래량 3x+5% 급등락 시만 <span class="sched-badge new">신규</span></div>
+          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간 감시, 거래량 3x+5% 급등락 시만</div>
         </div>
 
-        <div class="sched-label" style="margin-top:14px">▸ 주간·격주 WEEKLY</div>
-
+        <!-- ── 주간·격주 ── -->
+        <div class="sched-label" style="margin-top:16px">▸ 주간·격주 WEEKLY &nbsp;<span style="font-size:9px;color:#60a5fa;letter-spacing:0">정기 리포트</span></div>
         <div class="sched-item">
-          <div class="sched-dot active"></div>
+          <div class="sched-dot active" style="border-color:#3b82f6;background:#3b82f6"></div>
           <div class="sched-time">월 07:00</div>
-          <div class="sched-desc">주간 포트폴리오 — 6종목 주간 등락 + AI 인과율 분석 (0~100%) <span class="sched-badge new">신규</span></div>
+          <div class="sched-desc">주간 포트폴리오 — 6종목 주간 등락 + AI 인과율 분석 (0~100%)</div>
         </div>
         <div class="sched-item">
-          <div class="sched-dot active"></div>
+          <div class="sched-dot active" style="border-color:#3b82f6;background:#3b82f6"></div>
           <div class="sched-time">격주 일</div>
-          <div class="sched-desc">AI 리서치 리포트 — 6종목 순환 (TSMC→MU→GGLL→IEMG→…) PDF 발송 <span class="sched-badge new">신규</span></div>
+          <div class="sched-desc">AI 리서치 리포트 — 6종목 순환 (TSMC→MU→GGLL→IEMG→…) PDF 발송</div>
         </div>
         <div class="sched-item">
-          <div class="sched-dot active"></div>
+          <div class="sched-dot active" style="border-color:#3b82f6;background:#3b82f6"></div>
           <div class="sched-time">일 08:30</div>
-          <div class="sched-desc">섹터 분석 — 11개 섹터 등락, 유망 4개 + 포트폴리오 연계 추천 <span class="sched-badge existing">기존</span></div>
+          <div class="sched-desc">섹터 분석 — 11개 섹터 등락, 유망 4개 + 포트폴리오 연계 추천</div>
         </div>
+
       </div>
     </div>
   </div>
@@ -524,20 +531,20 @@
       <div class="auto-file">morning_briefing.py</div>
     </div>
 
-    <div class="auto-card daily">
-      <span class="auto-badge daily">DAILY</span>
+    <div class="auto-card cond">
+      <span class="auto-badge cond">COND</span>
       <div class="auto-time">07:30</div>
       <div class="auto-name">실적 발표 알림</div>
-      <div class="auto-desc">포트폴리오 + 관련 16개 종목 어닝 D-2 사전 알림. 예상 EPS·매출 + 체크포인트 2가지.</div>
+      <div class="auto-desc">보유·관심 16종목 실적 D-2/D-1/당일 해당 종목 있을 때만 전송. 예상 EPS·매출 + 체크포인트 2가지.</div>
       <div class="auto-status">READY</div>
       <div class="auto-file">earnings_alert.py</div>
     </div>
 
-    <div class="auto-card daily">
-      <span class="auto-badge daily">DAILY</span>
+    <div class="auto-card cond">
+      <span class="auto-badge cond">COND</span>
       <div class="auto-time">22:30 / 04:00</div>
       <div class="auto-name">매크로 브리핑</div>
-      <div class="auto-desc">CPI·NFP·GDP 발표 후 22:30, FOMC 발표 후 04:00 실행. 발표일만 자동 감지, 영문 뉴스 수집 후 포트폴리오 영향 분석.</div>
+      <div class="auto-desc">CPI·NFP·GDP 발표일(22:30) + FOMC 금리 결정일(04:00)만 실행. 발표 캘린더 자동 감지, 포트폴리오 영향 분석.</div>
       <div class="auto-status">READY</div>
       <div class="auto-file">macro_briefing.py</div>
     </div>
@@ -578,9 +585,9 @@
       <div class="auto-file">research_report.py</div>
     </div>
 
-    <div class="auto-card report">
-      <span class="auto-badge report">WEEKLY</span>
-      <div class="auto-time">일 08:00</div>
+    <div class="auto-card weekly">
+      <span class="auto-badge weekly">WEEKLY</span>
+      <div class="auto-time">일 08:30</div>
       <div class="auto-name">섹터 분석</div>
       <div class="auto-desc">S&amp;P500 11개 섹터 등락률 + 포트폴리오 연계 추천. 매주 일요일 자동 업데이트.</div>
       <div class="auto-status">READY</div>
@@ -612,6 +619,15 @@
       <div class="auto-desc">AI 투자 제안 현황 Top 3. 검토 대기 종목, 매수·매도 근거 요약. 매일 오후 3시 CEO 보고.</div>
       <div class="auto-status">READY</div>
       <div class="auto-file">proposal_report.py</div>
+    </div>
+
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">18:00</div>
+      <div class="auto-name">일일 마무리</div>
+      <div class="auto-desc">당일 수익률 + 주요 뉴스 요약 + 내일 주요 일정. 매일 오후 6시 CEO 보고.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">daily_report.py</div>
     </div>
 
     <div class="auto-card report">
