@@ -137,6 +137,13 @@
   .sched-desc { color: var(--text-dim); }
   .sched-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dark3); border: 2px solid var(--text-dim); flex-shrink: 0; }
   .sched-dot.active { background: var(--green); border-color: var(--green); }
+  .sched-badge {
+    font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px;
+    margin-left: 6px; letter-spacing: 1px; vertical-align: middle; flex-shrink: 0;
+  }
+  .sched-badge.new      { background: rgba(201,168,76,.12); color: var(--gold); border: 1px solid rgba(201,168,76,.25); }
+  .sched-badge.existing { background: rgba(34,197,94,.08);  color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+  .sched-label { font-size: 10px; letter-spacing: 2px; color: var(--text-dim); margin: 10px 0 6px 20px; }
 
   /* PORTFOLIO */
   .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 48px; }
@@ -400,7 +407,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>9</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>13</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
   <div class="status-item"><strong id="sb-vix">—</strong>VIX</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
@@ -429,45 +436,75 @@
       <h3>일일 스케줄</h3>
       <div class="sub">자동화 운영 타임라인</div>
       <div class="schedule-list">
+        <div class="sched-label">▸ 매일 DAILY</div>
+
+        <div class="sched-item">
+          <div class="sched-dot active"></div>
+          <div class="sched-time">04:00</div>
+          <div class="sched-desc">매크로 브리핑 — FOMC 금리 결정 후 포트폴리오 영향 분석 <span class="sched-badge new">신규</span></div>
+        </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">06:30</div>
-          <div class="sched-desc">모닝 브리핑 (한국 3 + 미국 3, LLM 번역)</div>
+          <div class="sched-desc">모닝 브리핑 — 한국 3건 + 미국 3건 뉴스, Groq LLM 번역·불릿 요약 <span class="sched-badge new">신규</span></div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">07:30</div>
-          <div class="sched-desc">실적 발표 D-2 사전 알림 + 예상 EPS/매출</div>
+          <div class="sched-desc">실적 발표 알림 — D-2 사전 알림, 예상 EPS·매출 + 체크포인트 <span class="sched-badge new">신규</span></div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
-          <div class="sched-time">22:30 / 04:00</div>
-          <div class="sched-desc">매크로 지표 브리핑 (22:30 CPI·NFP·GDP, 04:00 FOMC 대응)</div>
+          <div class="sched-time">09:00</div>
+          <div class="sched-desc">9시 브리핑 — 보유종목 현재가 + 장중 뉴스 수집 (DAT·INF·AP·DES) <span class="sched-badge existing">기존</span></div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active"></div>
+          <div class="sched-time">09:00</div>
+          <div class="sched-desc">가격 알림 — 52주 신고/신저 돌파, 이상 거래량, 주간 실적 사전 알림 <span class="sched-badge existing">기존</span></div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active"></div>
+          <div class="sched-time">15:00</div>
+          <div class="sched-desc">투자 프로포절 현황 — AI 제안 Top 3 요약 <span class="sched-badge existing">기존</span></div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">18:00</div>
-          <div class="sched-desc">일일 마무리 리포트</div>
+          <div class="sched-desc">일일 마무리 리포트 — 당일 수익률 + 주요 뉴스 요약 <span class="sched-badge new">신규</span></div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
           <div class="sched-time">21:00</div>
-          <div class="sched-desc">미국 개장 전 속보 · VIX·F&amp;G 업데이트</div>
+          <div class="sched-desc">개장 전 속보 — 미국 개장 30분 전 핵심 뉴스 1~3건 + S&amp;P 선물 <span class="sched-badge existing">기존</span></div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active"></div>
-          <div class="sched-time">23:00~</div>
-          <div class="sched-desc">이상 거래량 스캐너 (S&amp;P 500 전종목, 매 시간, 신호 시만 전송)</div>
+          <div class="sched-time">22:30</div>
+          <div class="sched-desc">매크로 브리핑 — CPI·NFP·GDP 발표 후 포트폴리오 영향 분석 <span class="sched-badge new">신규</span></div>
         </div>
         <div class="sched-item">
-          <div class="sched-dot"></div>
+          <div class="sched-dot active"></div>
+          <div class="sched-time">23~06시</div>
+          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간, 거래량 3x+5% 급등락 시만 <span class="sched-badge new">신규</span></div>
+        </div>
+
+        <div class="sched-label" style="margin-top:14px">▸ 주간·격주 WEEKLY</div>
+
+        <div class="sched-item">
+          <div class="sched-dot active"></div>
           <div class="sched-time">월 07:00</div>
-          <div class="sched-desc">주간 포트폴리오 리포트 + 인과율 분석</div>
+          <div class="sched-desc">주간 포트폴리오 — 6종목 주간 등락 + AI 인과율 분석 (0~100%) <span class="sched-badge new">신규</span></div>
         </div>
         <div class="sched-item">
-          <div class="sched-dot"></div>
+          <div class="sched-dot active"></div>
           <div class="sched-time">격주 일</div>
-          <div class="sched-desc">AI 리서치 리포트 PDF (6종목 순환)</div>
+          <div class="sched-desc">AI 리서치 리포트 — 6종목 순환 (TSMC→MU→GGLL→IEMG→…) PDF 발송 <span class="sched-badge new">신규</span></div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active"></div>
+          <div class="sched-time">일 08:30</div>
+          <div class="sched-desc">섹터 분석 — 11개 섹터 등락, 유망 4개 + 포트폴리오 연계 추천 <span class="sched-badge existing">기존</span></div>
         </div>
       </div>
     </div>
@@ -550,13 +587,40 @@
       <div class="auto-file">sector_analysis.py</div>
     </div>
 
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">09:00</div>
+      <div class="auto-name">9시 브리핑</div>
+      <div class="auto-desc">보유종목 현재가 + 장중 뉴스 수집. DAT(주가/뉴스)·INF(RSS)·AP(시장 분석)·DES(홈페이지 업데이트) 파트별 자동 리포트.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">meeting_report.py</div>
+    </div>
+
+    <div class="auto-card signal">
+      <span class="auto-badge signal">SIGNAL</span>
+      <div class="auto-time">09:00</div>
+      <div class="auto-name">가격 알림</div>
+      <div class="auto-desc">보유 5종목 52주 신고/신저 돌파 감지. 이상 거래량 경보. 주간 실적 발표 사전 알림. 신호 발생 시만 전송.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">price_alert.py</div>
+    </div>
+
+    <div class="auto-card daily">
+      <span class="auto-badge daily">DAILY</span>
+      <div class="auto-time">15:00</div>
+      <div class="auto-name">투자 프로포절</div>
+      <div class="auto-desc">AI 투자 제안 현황 Top 3. 검토 대기 종목, 매수·매도 근거 요약. 매일 오후 3시 CEO 보고.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">proposal_report.py</div>
+    </div>
+
     <div class="auto-card report">
       <span class="auto-badge report" style="background:rgba(139,92,246,0.2);color:#a78bfa;">ALWAYS-ON</span>
       <div class="auto-time">watchdog</div>
       <div class="auto-name">투자일지 자동화 v5</div>
       <div class="auto-desc">거래기록 입력 감지 → 포지션 자동 집계 → Groq AI 분석 (핵심논거·리스크·목표가·손절가). 메리츠 환차손익·총수익(₩) 실시간 계산. 대시보드 3구역: 미래에셋|메리츠|전체합계. OneDrive 동기화.</div>
       <div class="auto-status">ACTIVE</div>
-      <div class="auto-file">investment_journal.py · v2</div>
+      <div class="auto-file">investment_journal.py · v5</div>
     </div>
 
   </div>
