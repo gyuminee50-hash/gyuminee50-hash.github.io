@@ -89,27 +89,6 @@
   }
   .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(201,168,76,0.2); }
 
-  /* MARKET GRID */
-  .market-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px; margin-bottom: 48px;
-  }
-  .mkt-loading { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
-  .mkt-card {
-    background: var(--dark2); border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px; padding: 16px 14px;
-    display: flex; flex-direction: column; gap: 4px;
-    transition: border-color .2s;
-  }
-  .mkt-card:hover { border-color: rgba(201,168,76,0.3); }
-  .mkt-symbol { font-size: 12px; font-weight: 800; letter-spacing: 1px; color: var(--gold); }
-  .mkt-price { font-size: 18px; font-weight: 700; }
-  .mkt-chg { font-size: 12px; font-weight: 600; }
-  .mkt-name { font-size: 10px; color: var(--text-dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mkt-card .up { color: var(--green); }
-  .mkt-card .dn { color: var(--red); }
-  .mkt-err { color: var(--text-dim); font-size: 12px; padding: 20px 0; }
 
   /* OPS CENTER */
   .ops-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 48px; }
@@ -411,7 +390,6 @@
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
   <div class="status-item"><strong>13</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
-  <div class="status-item"><strong id="sb-vix">—</strong>VIX</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
 
@@ -426,11 +404,6 @@
 </div>
 
 <main>
-
-  <div class="section-title">📊 시장 현황 · Market Snapshot</div>
-  <div id="market-grid" class="market-grid">
-    <div class="mkt-loading">시세 로딩 중...</div>
-  </div>
 
   <div class="section-title">📅 자동화 스케줄 · Automation Schedule</div>
   <div class="ops-grid" style="grid-template-columns:1fr">
@@ -752,82 +725,20 @@
   }
   loadSectorData();
 
-  // ── 시장 현황 (매크로 지표 — 보유 종목 제외) ──
-  // 엑셀에 이미 있는 보유 종목 시세는 표시 안 함
-  const MKT_TICKERS = [
-    {s:'^VIX',     n:'VIX 공포지수',    unit:''},
-    {s:'^TNX',     n:'미 10년 국채금리', unit:'%'},
-    {s:'GLD',      n:'금 (Gold ETF)',    unit:'$'},
-    {s:'USO',      n:'원유 (Oil ETF)',   unit:'$'},
-    {s:'DX-Y.NYB', n:'달러 인덱스',     unit:''},
-    {s:'SOXX',     n:'반도체 지수 ETF', unit:'$'},
-    {s:'^DJI',     n:'다우존스',        unit:''},
-  ];
-
-  async function loadMarket() {
-    const grid = document.getElementById('market-grid');
+  // USD/KRW 헤더·상태바 업데이트
+  async function fetchUSDKRW() {
     try {
-      // USD/KRW
-      let krw = null;
-      try {
-        const fxR = await fetch('https://open.er-api.com/v6/latest/USD');
-        const fxD = await fxR.json();
-        krw = Math.round(fxD.rates.KRW);
-      } catch(e) {}
-
-      // 시세 (Yahoo Finance via CORS proxy)
-      const syms = MKT_TICKERS.map(t => t.s).join(',');
-      const yfUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(syms)}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yfUrl)}`;
-      const pr = await fetch(proxyUrl, {cache:'no-store'});
-      const pw = await pr.json();
-      const quotes = JSON.parse(pw.contents).quoteResponse.result;
-
-      let html = '';
-
-      // 환율 카드 (가장 먼저)
-      if (krw) {
-        html += `<div class="mkt-card">
-          <div class="mkt-symbol">USD/KRW</div>
-          <div class="mkt-price">${krw.toLocaleString()}원</div>
-          <div class="mkt-name">달러 원화 환율</div>
-        </div>`;
-        const sbEl = document.getElementById('sb-usdkrw');
-        if (sbEl) sbEl.textContent = krw.toLocaleString() + '원';
-      }
-
-      // 매크로 지표 카드
-      for (const t of MKT_TICKERS) {
-        const q = quotes.find(q => q.symbol === t.s);
-        if (!q) continue;
-        const chgPct = q.regularMarketChangePercent || 0;
-        const chgAmt = q.regularMarketChange || 0;
-        const cls  = chgPct >= 0 ? 'up' : 'dn';
-        const sign = chgPct >= 0 ? '+' : '';
-        const price = t.unit === '%'
-          ? q.regularMarketPrice.toFixed(2) + '%'
-          : t.unit === '$'
-          ? '$' + q.regularMarketPrice.toFixed(2)
-          : q.regularMarketPrice.toFixed(2);
-        html += `<div class="mkt-card">
-          <div class="mkt-symbol">${t.s.replace('^','').replace('-Y.NYB','')}</div>
-          <div class="mkt-price ${cls}">${price}</div>
-          <div class="mkt-chg ${cls}">${sign}${chgPct.toFixed(2)}%</div>
-          <div class="mkt-name">${t.n}</div>
-        </div>`;
-        if (t.s === '^VIX') {
-          const sbVix = document.getElementById('sb-vix');
-          if (sbVix) { sbVix.textContent = q.regularMarketPrice.toFixed(1); sbVix.style.color = q.regularMarketPrice > 25 ? 'var(--red)' : q.regularMarketPrice > 18 ? '#f97316' : 'var(--green)'; }
-        }
-      }
-
-      grid.innerHTML = html || '<div class="mkt-err">데이터 없음</div>';
-    } catch(e) {
-      grid.innerHTML = '<div class="mkt-err">시세 로드 실패 — 잠시 후 자동 재시도</div>';
-    }
+      const r = await fetch('https://open.er-api.com/v6/latest/USD');
+      const d = await r.json();
+      const krw = Math.round(d.rates.KRW);
+      const hdr = document.getElementById('header-fx-val');
+      const sb  = document.getElementById('sb-usdkrw');
+      if (hdr) hdr.textContent = krw.toLocaleString();
+      if (sb)  sb.textContent  = krw.toLocaleString() + '원';
+    } catch(e) {}
   }
-  loadMarket();
-  setInterval(loadMarket, 60000);
+  fetchUSDKRW();
+  setInterval(fetchUSDKRW, 300000);
 
   // 공포탐욕 게이지
   const FG_SEGS = [
