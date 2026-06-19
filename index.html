@@ -388,7 +388,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>13</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>14</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
@@ -409,7 +409,7 @@
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>텔레그램 수신 스케줄</h3>
-      <div class="sub">13개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영</div>
+      <div class="sub">14개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영</div>
       <div class="schedule-list">
 
         <!-- ── 매일 (무조건 옴) ── -->
@@ -465,7 +465,12 @@
         <div class="sched-item">
           <div class="sched-dot active" style="border-color:#f97316;background:#f97316"></div>
           <div class="sched-time">23~06시</div>
-          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간 감시, 거래량 3x+5% 급등락 시만</div>
+          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간 감시, 거래량 2x + 주가 3% + Groq 선행신호 있음 (AND 3가지) 시만</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
+          <div class="sched-time">수시</div>
+          <div class="sched-desc">선행신호 스캐너 — 보유·관심 10종목 뉴스 감시, Groq AI가 "미반영 선행신호" 감지 시만 전송 (0건 정상)</div>
         </div>
 
         <!-- ── 주간·격주 ── -->
@@ -499,7 +504,7 @@
       <span class="auto-badge daily">DAILY</span>
       <div class="auto-time">06:30</div>
       <div class="auto-name">모닝 브리핑</div>
-      <div class="auto-desc">한국 3건 + 미국 3건 뉴스 자동 수집. Groq LLM으로 제목 번역·헤드라인 정제, 불릿 요약.</div>
+      <div class="auto-desc">Reuters·AP·WSJ·CNBC·MarketWatch 등 화이트리스트 소스만 수집. Groq AI가 [요약]/[선행신호]/[판단] 포맷으로 분석 — 판단 애매하면 판단불가 출력.</div>
       <div class="auto-status">READY</div>
       <div class="auto-file">morning_briefing.py</div>
     </div>
@@ -535,7 +540,7 @@
       <span class="auto-badge signal">SIGNAL</span>
       <div class="auto-time">23~06시</div>
       <div class="auto-name">이상 거래량 스캐너</div>
-      <div class="auto-desc">S&amp;P 500 + 나스닥100 합집합 유니버스 매 시간 스캔. 거래량 3x + 급등락 5% 이상만 포착. DST 자동 적용 (EDT/EST).</div>
+      <div class="auto-desc">S&amp;P500+나스닥100 매 시간 스캔. 거래량 2x + 주가 3% + Groq "선행신호 있음" AND 3가지 동시 충족 시만 전송. 0건도 정상.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">volume_scanner.py</div>
     </div>
@@ -601,6 +606,15 @@
       <div class="auto-desc">당일 수익률 + 주요 뉴스 요약 + 내일 주요 일정. 매일 오후 6시 CEO 보고.</div>
       <div class="auto-status">READY</div>
       <div class="auto-file">daily_report.py</div>
+    </div>
+
+    <div class="auto-card cond">
+      <span class="auto-badge cond">COND</span>
+      <div class="auto-time">수시</div>
+      <div class="auto-name">선행신호 스캐너</div>
+      <div class="auto-desc">보유·관심 10종목(TSM·MU·GGLL·IEMG·NVDA·AMAT·ASML 등) 뉴스 감시. Groq AI가 "주가 미반영 선행신호" 판단 — 있을 때만 전송. 확신 낮으면 0건 정상.</div>
+      <div class="auto-status">READY</div>
+      <div class="auto-file">leading_signal.py</div>
     </div>
 
     <div class="auto-card report">

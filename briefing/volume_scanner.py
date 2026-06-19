@@ -120,11 +120,62 @@ def send_telegram(text):
         json={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'},
         timeout=15)
 
+# ── 종목 뉴스 수집 + Groq 선행신호 판단 ────────────────────────────────
+import xml.etree.ElementTree as _ET
+
+def _fetch_ticker_news(ticker, max_items=4):
+    """Google News RSS → 종목 최신 헤드라인"""
+    url = (f'https://news.google.com/rss/search?q={ticker}+stock'
+           f'&hl=en-US&gl=US&ceid=US:en')
+    try:
+        resp  = requests.get(url, timeout=8, headers={'User-Agent': 'Mozilla/5.0'})
+        items = _ET.fromstring(resp.content).findall('.//item')
+        return ' / '.join(
+            it.find('title').text.strip() for it in items[:max_items]
+            if it.find('title') is not None
+        )
+    except Exception:
+        return ''
+
+_SIGNAL_CHECK_PROMPT = """\
+종목: {ticker}
+오늘 {chg:+.1f}% 가격 이동, 거래량 평소의 {vol:.1f}배
+최신 뉴스 헤드라인: {news}
+
+이 급등락에 "시장에 아직 미반영된 선행신호"가 있는가?
+아래 형식으로만 응답. 다른 텍스트 없이:
+
+선행신호: 있음 / 없음
+신호내용: (있을 때만 — 30자 이내)
+뉴스출처: (있을 때만)
+판단: 한 줄
+
+원칙: 확신 없으면 없음. 0건 정상."""
+
+def _groq_signal_check(ticker, price_chg, vol_ratio):
+    """Groq에 선행신호 여부 판단 요청. (has_signal, info_dict) 반환."""
+    news = _fetch_ticker_news(ticker)
+    if not news:
+        return False, {}
+    try:
+        raw   = groq_client.call(
+            _SIGNAL_CHECK_PROMPT.format(ticker=ticker, chg=price_chg, vol=vol_ratio, news=news),
+            max_tokens=180, temperature=0.2,
+        )
+        lines = {l.split(':')[0].strip(): ':'.join(l.split(':')[1:]).strip()
+                 for l in raw.strip().splitlines() if ':' in l}
+        has   = '있음' in lines.get('선행신호', '없음')
+        return has, lines
+    except Exception as e:
+        print(f'    [Groq 판단 오류 {ticker}] {e}')
+        return False, {}
+
+
 # ── 스캔 핵심 로직 ───────────────────────────────────────────────────
-def scan_universe(vol_threshold=3.0, price_threshold=5.0):
+def scan_universe(vol_threshold=2.0, price_threshold=3.0):
     """
-    거래량 3x 초과 + 주가 변동 5% 초과 → 진짜 고위험 신호만
-    주 1~2개 수준이 목표
+    거래량 2x 이상 + 주가 3% 이상 + Groq 선행신호 있음 (AND 3가지 동시 충족)
+    0건도 정상 — GM Capital 핵심 철학
     """
     already_alerted = _load_log()['alerted']
     universe = get_universe()
@@ -166,14 +217,20 @@ def scan_universe(vol_threshold=3.0, price_threshold=5.0):
             price_chg  = (today_close - prev_close) / prev_close * 100
 
             if vol_ratio >= vol_threshold and abs(price_chg) >= price_threshold:
-                signals.append({
-                    'ticker':    ticker,
-                    'price_chg': round(price_chg, 2),
-                    'vol_ratio': round(vol_ratio, 1),
-                    'today_vol': int(today_vol),
-                    'price':     round(today_close, 2),
-                    'strength':  vol_ratio * abs(price_chg),
-                })
+                print(f'    [{ticker}] {price_chg:+.1f}% / {vol_ratio:.1f}x → Groq 선행신호 판단 중...')
+                has_signal, signal_info = _groq_signal_check(ticker, price_chg, vol_ratio)
+                if has_signal:
+                    signals.append({
+                        'ticker':      ticker,
+                        'price_chg':   round(price_chg, 2),
+                        'vol_ratio':   round(vol_ratio, 1),
+                        'today_vol':   int(today_vol),
+                        'price':       round(today_close, 2),
+                        'strength':    vol_ratio * abs(price_chg),
+                        'signal_info': signal_info,
+                    })
+                else:
+                    print(f'    [{ticker}] Groq 선행신호 없음 — 제외')
         except Exception:
             continue
 
@@ -205,25 +262,29 @@ def _explain(ticker, price_chg, vol_ratio):
 # ── 메시지 포맷 ─────────────────────────────────────────────────────
 def format_alert(signals):
     now_str = datetime.now().strftime('%m/%d %H:%M')
-    lines   = [f'<b>⚡ 고위험 신호 포착  {now_str}</b>\n']
+    lines   = [f'<b>🔍 선행신호 포착  {now_str}</b>\n']
 
     for s in signals:
-        label, icon = _signal_type(s['price_chg'])
-        sign  = '+' if s['price_chg'] >= 0 else ''
-        vol_m = s['today_vol'] / 1_000_000
+        _, icon = _signal_type(s['price_chg'])
+        sign = '+' if s['price_chg'] >= 0 else ''
+        info = s.get('signal_info', {})
 
+        lines.append(f'<b>[선행신호 포착]</b>')
         lines.append(
             f'{icon} <b>{s["ticker"]}</b>  '
-            f'<b>{sign}{s["price_chg"]:.1f}%</b>  |  '
-            f'거래량 {s["vol_ratio"]:.1f}x ({vol_m:.1f}M주)'
+            f'<b>{sign}{s["price_chg"]:.1f}%</b>  |  거래량 {s["vol_ratio"]:.1f}x'
         )
-        explanation = _explain(s['ticker'], s['price_chg'], s['vol_ratio'])
-        lines.append(f'   <i>{explanation}</i>')
-        lines.append(f'   현재가 ${s["price"]}')
+        if info.get('신호내용'):
+            lines.append(f'신호: {info["신호내용"]}')
+        if info.get('뉴스출처'):
+            lines.append(f'출처: {info["뉴스출처"]}')
+        if info.get('판단'):
+            lines.append(f'판단: {info["판단"]}')
+        lines.append(f'현재가 ${s["price"]}')
         lines.append('')
 
-    lines.append('<i>* 기준: 거래량 3x 초과 + 주가 5% 이상 급등락 (개별 주식)</i>')
-    lines.append('<i>  고위험 신호 — AP팀 판단 후 활용 권장</i>')
+    lines.append('<i>* 기준: 거래량 2x + 주가 3% + Groq 선행신호 있음 (AND 3가지)</i>')
+    lines.append('<i>  0건도 정상 — GM Capital 원칙</i>')
     return '\n'.join(lines)
 
 # ── 메인 ────────────────────────────────────────────────────────────
