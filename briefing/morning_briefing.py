@@ -802,5 +802,10 @@ def main():
     else:
         print(f"❌ 전송 실패: {result}")
 
+    # 선행신호 스캐너 연속 실행 (모닝 브리핑 직후)
+    print("\n[선행신호 스캔 시작]")
+    from leading_signal import run_signal_scan
+    run_signal_scan()
+
 if __name__ == '__main__':
     main()
