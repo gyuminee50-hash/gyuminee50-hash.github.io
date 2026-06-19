@@ -14,19 +14,36 @@ LOG_FILE = os.path.join(BASE_DIR, 'signal_log.json')
 with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
 
-# 보유종목 + 관심종목 감시 목록
+# 보유종목 + 관심종목 감시 목록 (25종목)
 WATCH_LIST = [
-    ('TSM',  'TSMC',             'TSMC semiconductor Taiwan foundry CoWoS'),
-    ('MU',   'Micron',           'Micron Technology HBM DRAM memory'),
-    ('GGLL', 'Alphabet/Google',  'Alphabet Google AI cloud revenue ad'),
-    ('IEMG', 'iShares EM ETF',   'emerging market ETF Asia EM'),
-    ('SPYM', 'S&P500 ETF',       'S&P 500 market index'),
-    ('QLD',  'Nasdaq 2x',        'QQQ Nasdaq technology'),
-    # 관심종목
-    ('NVDA', 'Nvidia',           'Nvidia GPU AI data center Blackwell'),
-    ('AMAT', 'Applied Materials', 'AMAT semiconductor equipment fab'),
-    ('ASML', 'ASML',             'ASML EUV lithography chip'),
-    ('ARM',  'ARM Holdings',     'ARM semiconductor IP licensing'),
+    # ── 보유 6종목 ──────────────────────────────────────────────
+    ('TSM',  'TSMC',            'TSMC semiconductor Taiwan foundry CoWoS'),
+    ('MU',   'Micron',          'Micron Technology HBM DRAM memory'),
+    ('GGLL', 'Alphabet/Google', 'Alphabet Google AI cloud revenue ad'),
+    ('IEMG', 'iShares EM ETF',  'emerging market ETF Asia EM'),
+    ('SPYM', 'S&P500 ETF',      'S&P 500 market index'),
+    ('QLD',  'Nasdaq 2x',       'QQQ Nasdaq technology'),
+    # ── 반도체·AI 핵심 9종목 ────────────────────────────────────
+    ('NVDA', 'Nvidia',          'Nvidia GPU AI data center Blackwell'),
+    ('AMD',  'AMD',             'AMD CPU GPU AI accelerator'),
+    ('AVGO', 'Broadcom',        'Broadcom AI networking chip ASIC'),
+    ('QCOM', 'Qualcomm',        'Qualcomm mobile AI chip Snapdragon'),
+    ('MRVL', 'Marvell',         'Marvell AI data center custom silicon'),
+    ('AMAT', 'Applied Materials','AMAT semiconductor equipment fab'),
+    ('ASML', 'ASML',            'ASML EUV lithography chip'),
+    ('KLAC', 'KLA',             'KLA semiconductor process control inspection'),
+    ('LRCX', 'Lam Research',    'Lam Research etch deposition semiconductor'),
+    # ── AI 빅테크 4종목 ─────────────────────────────────────────
+    ('MSFT', 'Microsoft',       'Microsoft Azure AI cloud Copilot'),
+    ('META', 'Meta',            'Meta AI LLaMA advertising revenue'),
+    ('AMZN', 'Amazon',          'Amazon AWS AI cloud earnings'),
+    ('GOOG', 'Google/Alphabet', 'Google Gemini AI cloud revenue'),
+    # ── 기타 반도체·밸류체인 5종목 ─────────────────────────────
+    ('ARM',  'ARM Holdings',    'ARM semiconductor IP licensing royalty'),
+    ('ON',   'ON Semiconductor','ON Semiconductor SiC EV power'),
+    ('INTC', 'Intel',           'Intel foundry IFS process node'),
+    ('TER',  'Teradyne',        'Teradyne semiconductor test equipment'),
+    ('ENTG', 'Entegris',        'Entegris semiconductor materials CMP'),
 ]
 
 _PROMPT = """\
