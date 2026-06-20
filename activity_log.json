@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-19 21:00",
+  "updated": "2026-06-20 09:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -29,17 +29,16 @@
       "sym": "SPY",
       "name": "S&P500",
       "price": 746.74,
-      "chg": 0.78
+      "chg": 1.04
     }
   ],
   "inf": {
-    "kr_count": 37,
+    "kr_count": 11,
     "kr_sources": [
       "연합뉴스"
     ],
-    "us_count": 41,
+    "us_count": 34,
     "us_sources": [
-      "Yahoo Finance",
       "CNBC",
       "MarketWatch"
     ]
@@ -53,7 +52,7 @@
     ]
   },
   "vix": {
-    "value": 17.1,
+    "value": 16.78,
     "state": "🙂 보통 이하"
   },
   "fg": {
