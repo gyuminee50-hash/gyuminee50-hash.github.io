@@ -389,7 +389,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>17</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>18</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
@@ -410,7 +410,7 @@
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>텔레그램 수신 스케줄</h3>
-      <div class="sub">17개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (ROY v2.4)</div>
+      <div class="sub">18개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①)</div>
       <div class="schedule-list">
 
         <!-- ── 매일 (무조건 옴) ── -->
@@ -439,6 +439,12 @@
           <div class="sched-dot active"></div>
           <div class="sched-time">21:00</div>
           <div class="sched-desc">개장 전 속보 — 미국 개장 30분 전 핵심 뉴스 1~3건 + S&amp;P 선물</div>
+        </div>
+
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#22c55e;background:#22c55e"></div>
+          <div class="sched-time">07:00</div>
+          <div class="sched-desc">리스크관리팀 [패밀리오피스 ①] — 포트폴리오 섹터 편중 분석 + Groq 리스크 경고</div>
         </div>
 
         <!-- ── 조건부 (해당 이슈 있을 때만 옴) ── -->
@@ -661,6 +667,15 @@
       <div class="auto-desc">거래기록 입력 감지 → 포지션 자동 집계 → Groq AI 분석 (핵심논거·리스크·목표가·손절가). 메리츠 환차손익·총수익(₩) 실시간 계산. 대시보드 3구역: 미래에셋|메리츠|전체합계. OneDrive 동기화.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">investment_journal.py · v5</div>
+    </div>
+
+    <div class="auto-card report">
+      <span class="auto-badge report">AUTO</span>
+      <div class="auto-time">07:00</div>
+      <div class="auto-name">리스크관리팀 [패밀리오피스 ①]</div>
+      <div class="auto-desc">투자일지 엑셀에서 미래에셋+메리츠 포지션 읽기 → 섹터별 비중 계산 → Groq 70B 리스크 분석. 섹터 편중 50% 초과 시 경고 + 레버리지 ETF 변동성 리스크 별도 언급.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">risk_manager.py</div>
     </div>
 
   </div>
