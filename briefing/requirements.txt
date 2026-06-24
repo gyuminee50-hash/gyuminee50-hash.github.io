@@ -1,0 +1,7 @@
+feedparser
+requests
+pyyaml
+yfinance
+pandas
+openpyxl
+beautifulsoup4

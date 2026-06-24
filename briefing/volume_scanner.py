@@ -4,7 +4,7 @@
 대상: S&P 500 전종목 (Wikipedia 자동 갱신, ETF 제외)
 주 1~2개 수준의 진짜 신호만 전송 / 미국 장 중 매 시간 실행
 """
-import json, os, sys, requests
+import json, os, sys, requests, sqlite3
 from datetime import datetime, timezone, timedelta, date
 
 import pandas as pd
@@ -17,6 +17,28 @@ UNIVERSE_CACHE = os.path.join(BASE_DIR, 'sp500_cache.json')
 
 with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
+
+def _log_signal_db(ticker, price_chg, vol_ratio, price, headline, signal_info):
+    """signals 테이블에 이상거래량 신호 기록."""
+    try:
+        from db_setup import DB_PATH, init_db
+        if not os.path.exists(DB_PATH):
+            init_db()
+        conn = sqlite3.connect(DB_PATH)
+        reasoning = signal_info.get('판단', '') if signal_info else ''
+        headline_str = signal_info.get('신호내용', f'{ticker} {price_chg:+.1f}%') if signal_info else f'{ticker} {price_chg:+.1f}%'
+        conn.execute(
+            """INSERT INTO signals
+               (flagged_at,ticker,market,signal_type,headline,source,reasoning,rubric_score,groq_model,price_at_flag,benchmark)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            (datetime.now().isoformat(), ticker, 'US', '이상거래량',
+             headline_str, 'VolumeScanner', reasoning, None,
+             groq_client.MODEL, price, 'SPY')
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'  [스캐너 DB 로깅 오류] {e}')
 
 
 # ── 스캔 유니버스: S&P 500 + 나스닥 100 (당일 캐시) ──────────────────
@@ -229,6 +251,8 @@ def scan_universe(vol_threshold=2.0, price_threshold=3.0):
                         'strength':    vol_ratio * abs(price_chg),
                         'signal_info': signal_info,
                     })
+                    _log_signal_db(ticker, price_chg, vol_ratio,
+                                   round(today_close, 2), None, signal_info)
                 else:
                     print(f'    [{ticker}] Groq 선행신호 없음 — 제외')
         except Exception:

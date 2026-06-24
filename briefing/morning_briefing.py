@@ -802,10 +802,21 @@ def main():
     else:
         print(f"❌ 전송 실패: {result}")
 
-    # 선행신호 스캐너 연속 실행 (모닝 브리핑 직후)
-    print("\n[선행신호 스캔 시작]")
-    from leading_signal import run_signal_scan
-    run_signal_scan()
+    # 발굴 엔진 — 신호 먼저 구조 (보유종목 발굴 제외)
+    print("\n[발굴 스캔 시작]")
+    try:
+        from discovery import run_discovery
+        run_discovery()
+    except Exception as _e:
+        print(f"  [발굴 오류] {_e}")
+
+    # 보유종목 모니터링 (긴급도 높음만 알림)
+    print("\n[보유종목 모니터링]")
+    try:
+        from holdings_monitor import run_holdings_monitor
+        run_holdings_monitor()
+    except Exception as _e:
+        print(f"  [보유종목 모니터링 오류] {_e}")
 
 if __name__ == '__main__':
     main()

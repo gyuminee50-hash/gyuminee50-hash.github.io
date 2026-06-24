@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ROY 결과추적 대시보드 — GM Capital</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0f1e;
+      --card: #131929;
+      --border: #1e2d4a;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; font-size: 14px; }
+    header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px;
+             display: flex; align-items: center; gap: 12px; }
+    header h1 { font-size: 18px; font-weight: 700; }
+    header .badge { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px;
+                    font-size: 11px; font-weight: 600; }
+    .gen-time { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+    /* KPI 카드 */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .kpi .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .kpi .value { font-size: 28px; font-weight: 700; }
+    .kpi .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); }
+    .red   { color: var(--red); }
+    .blue  { color: var(--accent); }
+    .yellow{ color: var(--yellow); }
+
+    /* 차트 그리드 */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 720px) { .chart-grid { grid-template-columns: 1fr; } }
+    .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .chart-card h2 { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+    .chart-card canvas { max-height: 220px; }
+
+    /* 신호 테이블 */
+    .table-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .table-card h2 { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border);
+         color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    .verdict-hit     { background: rgba(34,197,94,.15);  color: var(--green); border-radius: 4px; padding: 1px 6px; }
+    .verdict-miss    { background: rgba(239,68,68,.15);  color: var(--red);   border-radius: 4px; padding: 1px 6px; }
+    .verdict-neutral { background: rgba(100,116,139,.15);color: var(--muted); border-radius: 4px; padding: 1px 6px; }
+    .verdict-pending { background: rgba(234,179,8,.12);  color: var(--yellow);border-radius: 4px; padding: 1px 6px; }
+
+    .empty { text-align: center; padding: 40px; color: var(--muted); }
+    footer { text-align: center; padding: 24px; color: var(--muted); font-size: 11px; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>ROY 결과추적 대시보드</h1>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px;">GM Capital — 발굴 신호 성과 추적</div>
+  </div>
+  <span class="badge">LIVE</span>
+  <div class="gen-time" id="genTime">—</div>
+</header>
+
+<div class="container">
+
+  <!-- KPI -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">총 발굴 신호</div>
+      <div class="value blue" id="kpiTotal">—</div>
+      <div class="sub">누적 발송 건수</div>
+    </div>
+    <div class="kpi">
+      <div class="label">채점 완료</div>
+      <div class="value" id="kpiEval">—</div>
+      <div class="sub">T+5 이상 경과</div>
+    </div>
+    <div class="kpi">
+      <div class="label">적중률</div>
+      <div class="value" id="kpiHitRate">—</div>
+      <div class="sub">T+5 수익 3%+</div>
+    </div>
+    <div class="kpi">
+      <div class="label">평균 Alpha</div>
+      <div class="value" id="kpiAlpha">—</div>
+      <div class="sub">vs SPY T+5</div>
+    </div>
+    <div class="kpi">
+      <div class="label">평균 루브릭</div>
+      <div class="value yellow" id="kpiRubric">—</div>
+      <div class="sub">/ 10점</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Hit / Miss</div>
+      <div class="value" id="kpiHitMiss">—</div>
+      <div class="sub">채점 완료 분포</div>
+    </div>
+  </div>
+
+  <!-- 차트 -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h2>일별 발굴 신호 (최근 30일)</h2>
+      <canvas id="chartTrend"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2>신호유형별 Hit/Miss</h2>
+      <canvas id="chartType"></canvas>
+    </div>
+  </div>
+
+  <!-- 신호 테이블 -->
+  <div class="table-card">
+    <h2>최근 발굴 신호 20건</h2>
+    <div id="tableWrap"></div>
+  </div>
+
+</div>
+<footer>GM Capital ROY v2.4 — 발굴 데이터 기반 자기진화 시스템</footer>
+
+<script>
+/* __DASHBOARD_DATA__ */
+const STATS = null;
+
+(function() {
+  if (!STATS) {
+    document.getElementById('tableWrap').innerHTML =
+      '<div class="empty">아직 발굴 데이터 없음 — 신호 발송 후 표시됩니다</div>';
+    return;
+  }
+
+  const s = STATS.summary;
+  const fmt = (v, suffix='', dec=1) => v != null ? (typeof v==='number' ? v.toFixed(dec)+suffix : v+suffix) : '—';
+  const clr = v => v == null ? '' : (v >= 0 ? 'green' : 'red');
+
+  document.getElementById('genTime').textContent = '업데이트: ' + (STATS.generated_at||'').slice(0,16).replace('T',' ');
+  document.getElementById('kpiTotal').textContent    = fmt(s.total_signals, '건', 0);
+  document.getElementById('kpiEval').textContent     = fmt(s.evaluated, '건', 0);
+  document.getElementById('kpiHitRate').textContent  = fmt(s.hit_rate_pct, '%');
+  document.getElementById('kpiHitRate').className    = 'value ' + (s.hit_rate_pct >= 50 ? 'green' : 'red');
+  document.getElementById('kpiAlpha').textContent    = fmt(s.avg_alpha_pct, '%');
+  document.getElementById('kpiAlpha').className      = 'value ' + clr(s.avg_alpha_pct);
+  document.getElementById('kpiRubric').textContent   = fmt(s.avg_rubric, '/10');
+  document.getElementById('kpiHitMiss').textContent  = (s.hit_count||0) + ' / ' + (s.miss_count||0);
+  document.getElementById('kpiHitMiss').className    = 'value ' + clr((s.hit_count||0) - (s.miss_count||0));
+
+  // Trend chart
+  if (STATS.trend && STATS.trend.length > 0) {
+    const ctx = document.getElementById('chartTrend').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: STATS.trend.map(r => r.date.slice(5)),
+        datasets: [{ label: '신호 건수', data: STATS.trend.map(r => r.count),
+          backgroundColor: 'rgba(59,130,246,.6)', borderRadius: 3 }]
+      },
+      options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+    });
+  }
+
+  // Type chart
+  if (STATS.by_type && STATS.by_type.length > 0) {
+    const ctx2 = document.getElementById('chartType').getContext('2d');
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: STATS.by_type.map(r => r.type),
+        datasets: [
+          { label: 'Hit',   data: STATS.by_type.map(r => r.hits), backgroundColor: 'rgba(34,197,94,.7)' },
+          { label: 'Total', data: STATS.by_type.map(r => r.count - r.hits), backgroundColor: 'rgba(100,116,139,.4)' },
+        ]
+      },
+      options: { plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}
+    });
+  }
+
+  // Table
+  if (!STATS.recent || STATS.recent.length === 0) {
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">발굴 신호 없음</div>';
+    return;
+  }
+  const rows = STATS.recent.map(r => {
+    const vc = r.verdict === 'hit' ? 'hit' : r.verdict === 'miss' ? 'miss' : r.verdict === 'neutral' ? 'neutral' : 'pending';
+    const ret  = r.ret5  != null ? `<span class="${clr(r.ret5)}">${r.ret5>0?'+':''}${r.ret5}%</span>` : '—';
+    const alpha= r.alpha5!= null ? `<span class="${clr(r.alpha5)}">${r.alpha5>0?'+':''}${r.alpha5}%</span>` : '—';
+    return `<tr>
+      <td>${r.date}</td>
+      <td><b>${r.ticker}</b></td>
+      <td><small>${r.type||'기타'}</small></td>
+      <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.headline||''}</td>
+      <td>${r.rubric!=null?r.rubric+'/10':'—'}</td>
+      <td>${ret}</td>
+      <td>${alpha}</td>
+      <td><span class="verdict-${vc}">${r.verdict}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tableWrap').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>날짜</th><th>종목</th><th>유형</th><th>헤드라인</th>
+        <th>루브릭</th><th>T+5</th><th>Alpha</th><th>판정</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+})();
+</script>
+</body>
+</html>

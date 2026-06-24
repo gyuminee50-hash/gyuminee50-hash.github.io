@@ -13,12 +13,12 @@ MODEL = _cfg.get('groq_model', 'llama-3.3-70b-versatile')
 KEY   = _cfg.get('groq_api_key', '')
 
 
-def call(prompt, max_tokens=600, temperature=0.3):
-    """Groq API 단일 호출. 실패 시 Exception 발생."""
+def call(prompt, max_tokens=600, temperature=0.3, model=None):
+    """Groq API 단일 호출. model 지정 시 해당 모델 사용, 아니면 config 기본값."""
     resp = requests.post(
         URL,
         headers={'Authorization': f'Bearer {KEY}', 'Content-Type': 'application/json'},
-        json={'model': MODEL,
+        json={'model': model or MODEL,
               'messages': [{'role': 'user', 'content': prompt}],
               'temperature': temperature,
               'max_tokens': max_tokens},
