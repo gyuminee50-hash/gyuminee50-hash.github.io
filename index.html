@@ -389,7 +389,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>18</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>19</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
@@ -410,7 +410,7 @@
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>텔레그램 수신 스케줄</h3>
-      <div class="sub">18개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①)</div>
+      <div class="sub">19개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①②)</div>
       <div class="schedule-list">
 
         <!-- ── 매일 (무조건 옴) ── -->
@@ -676,6 +676,15 @@
       <div class="auto-desc">투자일지 엑셀에서 미래에셋+메리츠 포지션 읽기 → 섹터별 비중 계산 → Groq 70B 리스크 분석. 섹터 편중 50% 초과 시 경고 + 레버리지 ETF 변동성 리스크 별도 언급.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">risk_manager.py</div>
+    </div>
+
+    <div class="auto-card report">
+      <span class="auto-badge report">AUTO</span>
+      <div class="auto-time">월 08:00</div>
+      <div class="auto-name">AI 투자위원회 [패밀리오피스 ②]</div>
+      <div class="auto-desc">보유 전 종목 Bull/Bear/중립 토론 자동 생성. Groq 70B — 근거 없으면 "뚜렷한 반론 없음" 인정, 억지 토론 금지. CEO 최종 판단용 리포트 발송. 매주 월요일.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">investment_committee.py</div>
     </div>
 
   </div>
