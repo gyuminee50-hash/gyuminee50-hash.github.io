@@ -113,7 +113,7 @@
     font-size: 13px;
   }
   .sched-time { color: var(--gold); font-weight: 700; width: 50px; flex-shrink: 0; }
-  .sched-desc { color: var(--text-dim); }
+  .sched-desc { color: var(--text-dim); line-height: 1.5; }
   .sched-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dark3); border: 2px solid var(--text-dim); flex-shrink: 0; }
   .sched-dot.active { background: var(--green); border-color: var(--green); }
   .sched-badge {
@@ -357,6 +357,114 @@
     font-size: 12px; color: var(--text-dim);
   }
   footer strong { color: var(--gold); }
+
+  /* ══════════════════════════════════════
+     모바일 반응형 — 768px 이하
+  ══════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* 헤더 */
+    header {
+      padding: 12px 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    nav {
+      display: none; /* 모바일에서 nav 숨김 — 스크롤로 탐색 */
+    }
+    .logo-text { font-size: 16px; letter-spacing: 1px; }
+    .logo-sub  { display: none; }
+    #clock span { font-size: 15px; }
+    .header-fx  { font-size: 11px; }
+
+    /* 히어로 */
+    .hero {
+      padding: 36px 20px 32px;
+    }
+    .hero::before { display: none; }
+    .hero h1      { font-size: 28px; }
+    .hero p       { font-size: 13px; }
+    .ceo-badge    { font-size: 12px; padding: 8px 14px; }
+
+    /* 상태바 — 2x2 그리드 */
+    .status-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .status-item {
+      padding: 10px 14px;
+      border-right: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .status-item strong { font-size: 15px; }
+
+    /* 메인 패딩 */
+    main { padding: 24px 16px; }
+
+    /* ROY 카드 */
+    .max-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px;
+    }
+    .max-info p { font-size: 12px; }
+
+    /* 운영 그리드 (스케줄 카드) */
+    .ops-grid {
+      grid-template-columns: 1fr !important;
+      gap: 16px;
+    }
+
+    /* 포트폴리오 그리드 */
+    .portfolio-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stock-card { padding: 12px 14px; }
+    .stock-ticker { font-size: 13px; }
+
+    /* 제안 그리드 */
+    .proposal-grid {
+      grid-template-columns: 1fr;
+    }
+
+    /* 자동화 그리드 */
+    .auto-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .auto-card { padding: 16px 14px; }
+    .auto-desc { font-size: 11px; }
+
+    /* 스케줄 리스트 */
+    .sched-desc { font-size: 12px; }
+    .sched-time { width: 42px; font-size: 12px; }
+
+    /* 섹터 분석 */
+    .sector-card { padding: 16px; }
+    .sector-name { font-size: 14px; }
+
+    /* Fear & Greed */
+    .fg-card { padding: 16px; }
+    .vix-row { flex-wrap: wrap; gap: 8px; }
+
+    /* 섹션 타이틀 */
+    .section-title { font-size: 10px; letter-spacing: 2px; }
+
+    /* 푸터 */
+    footer { padding: 24px 16px; font-size: 11px; }
+  }
+
+  /* ══════════════════════════════════════
+     소형 폰 — 480px 이하
+  ══════════════════════════════════════ */
+  @media (max-width: 480px) {
+    .hero h1      { font-size: 22px; }
+    .portfolio-grid { grid-template-columns: 1fr; }
+    .status-bar { grid-template-columns: 1fr; }
+    .status-item { border-right: none; }
+    .auto-time { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
