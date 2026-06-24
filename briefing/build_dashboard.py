@@ -7,9 +7,19 @@ from datetime import datetime, timedelta, date
 
 from db_setup import DB_PATH, get_conn
 
-BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT     = os.path.join(BASE_DIR, '..')
+BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT      = os.path.join(BASE_DIR, '..')
 DASHBOARD_HTML = os.path.join(REPO_ROOT, 'dashboard.html')
+STATUS_FILE    = os.path.join(BASE_DIR, 'family_office_status.json')
+
+
+def _load_fo_status():
+    """패밀리오피스 팀 최신 결과 JSON 로드."""
+    try:
+        with open(STATUS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
 
 
 def _build_stats():
@@ -99,8 +109,9 @@ def build_dashboard():
         print('[대시보드] DB 없음 — 건너뜀')
         return
 
-    stats    = _build_stats()
-    stats_js = json.dumps(stats, ensure_ascii=False, indent=2)
+    stats        = _build_stats()
+    stats['fo']  = _load_fo_status()   # 패밀리오피스 팀 현황 포함
+    stats_js     = json.dumps(stats, ensure_ascii=False, indent=2)
 
     # dashboard.html 템플릿 읽기
     if not os.path.exists(DASHBOARD_HTML):

@@ -9,7 +9,6 @@ AI 투자위원회 — AI 패밀리오피스 ②
 """
 import json, os, sys
 import openpyxl
-import requests
 import yfinance as yf
 from datetime import datetime
 from collections import defaultdict
@@ -17,6 +16,7 @@ from collections import defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
 
 import groq_client
+from fo_utils import save_status, send as tg_send
 
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 EXCEL_PATH = r'C:\Users\DeskTop\OneDrive\문서\GMCapital_투자일지.xlsx'
@@ -167,18 +167,6 @@ def _debate(pos):
         return f'[토론 생성 오류] {e}'
 
 
-def _send_telegram(text):
-    token   = _cfg['telegram_token']
-    chat_id = _cfg['telegram_chat_id']
-    # 텔레그램 4096자 제한 → 분할 발송
-    for i in range(0, len(text), 4000):
-        requests.post(
-            f'https://api.telegram.org/bot{token}/sendMessage',
-            json={'chat_id': chat_id, 'text': text[i:i+4000], 'parse_mode': 'HTML'},
-            timeout=15,
-        )
-
-
 def run_committee():
     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M")}] AI 투자위원회 시작...')
 
@@ -203,32 +191,29 @@ def run_committee():
     now_str = datetime.now().strftime('%m/%d %H:%M')
     header  = (
         f'<b>🏛 AI 투자위원회  {now_str}</b>\n'
-        f'총 평가액 {total_value:,}원 | 총 수익률 {total_ret:+.1f}%\n'
-        f'보유 {len(positions)}종목 — 아래 CEO 최종 판단 요청\n'
+        f'총 {total_value:,}원  |  수익률 {total_ret:+.1f}%  |  {len(positions)}종목\n'
+        f'<i>아래 각 종목 판단 후 "X번 매수확대/축소" 알려주세요</i>'
     )
-    _send_telegram(header)
+    tg_send(header)
 
-    for pos in positions:
+    for i, pos in enumerate(positions, 1):
         print(f'  [{pos["ticker"]}] 토론 중...')
         debate = _debate(pos)
-
         ret_icon = '📈' if pos['ret'] >= 0 else '📉'
         msg = (
-            f'<b>{ret_icon} {pos["ticker"]} ({pos["name"]})</b>\n'
-            f'현재가 {pos["price"]}  |  수익률 {pos["ret"]:+.1f}%\n'
-            f'평가액 {pos["value"]:,}원\n\n'
-            f'{debate}\n\n'
-            f'<i>─ {pos["account"]} 계좌 ─</i>'
+            f'<b>{i}. {ret_icon} {pos["ticker"]}  {pos["ret"]:+.1f}%  |  {pos["value"]:,}원</b>\n'
+            f'<i>{pos["name"]}  ({pos["account"]})</i>\n\n'
+            f'{debate}'
         )
-        _send_telegram(msg)
+        tg_send(msg)
 
-    footer = (
-        '\n<b>📋 CEO 판단 요청</b>\n'
-        '각 종목의 [권고]에 대해 결정을 내려주세요.\n'
-        '"1번 매수확대", "3번 축소" 형식으로 알려주시면 실행합니다.\n\n'
-        '<i>* GM Capital AI 투자위원회 — 억지 토론 금지 원칙</i>'
-    )
-    _send_telegram(footer)
+    tg_send('<b>📋 위 종목들 판단 부탁드립니다.</b>\n<i>억지 토론 금지 원칙 — Bear가 없으면 없다고 표기됨</i>')
+
+    save_status('committee', {
+        'tickers':     [p['ticker'] for p in positions],
+        'total_value': total_value,
+        'total_ret':   round(total_ret, 2),
+    })
     print(f'✅ 투자위원회 리포트 발송 완료 ({len(positions)}종목)!')
 
 

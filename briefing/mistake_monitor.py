@@ -9,7 +9,6 @@
 """
 import json, os, sys
 import openpyxl
-import requests
 import yfinance as yf
 from datetime import datetime, timedelta, date
 from collections import defaultdict
@@ -17,6 +16,7 @@ from collections import defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
 
 import groq_client
+from fo_utils import save_status, send as tg_send
 
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 EXCEL_PATH = r'C:\Users\DeskTop\OneDrive\문서\GMCapital_투자일지.xlsx'
@@ -196,16 +196,6 @@ def _read_positions(wb, usdkrw):
     return positions
 
 
-def _send_telegram(text):
-    token   = _cfg['telegram_token']
-    chat_id = _cfg['telegram_chat_id']
-    requests.post(
-        f'https://api.telegram.org/bot{token}/sendMessage',
-        json={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'},
-        timeout=15,
-    )
-
-
 def run_mistake_monitor():
     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M")}] 실수감시팀 점검 시작...')
 
@@ -294,22 +284,22 @@ def run_mistake_monitor():
             })
             print(f'    → 손절회피 위험 {level} !')
 
+    save_status('mistakes', {'alert_count': len(alerts),
+                              'tickers': [a['ticker'] for a in alerts]})
+
     if not alerts:
         print('✅ 실수 패턴 없음 (0건 정상)')
         return
 
     now_str = datetime.now().strftime('%m/%d %H:%M')
-    lines   = [f'<b>⚠️ 실수감시팀 경고  {now_str}</b>\n']
+    lines   = [f'<b>⚠️ 실수감시팀  {now_str}  |  경고 {len(alerts)}건</b>']
     for a in alerts:
         icon = '🔴' if a['level'] == '높음' else '🟡'
-        lines.append(f'{icon} <b>[{a["type"]}] {a["ticker"]} ({a["name"]})</b>')
-        lines.append(f'{a["detail"]}')
+        lines.append(f'\n{icon} <b>[{a["type"]}] {a["ticker"]}</b>  {a["detail"]}')
         lines.append(a['analysis'])
-        lines.append('')
-    lines.append('<i>* GM Capital 실수감시팀 — 심리적 오류 패턴 감지</i>')
-    lines.append('<i>  0건이 정상. 경고는 참고용이며 CEO 최종 판단 우선.</i>')
+    lines.append('\n<i>* 참고용 — CEO 최종 판단 우선. 0건이 정상.</i>')
 
-    _send_telegram('\n'.join(lines))
+    tg_send('\n'.join(lines))
     print(f'✅ 실수 경고 {len(alerts)}건 발송!')
 
 

@@ -121,6 +121,14 @@
     </div>
   </div>
 
+  <!-- 패밀리오피스 현황 -->
+  <div class="chart-grid" style="margin-bottom:24px">
+    <div class="chart-card" style="grid-column:1/-1">
+      <h2>AI 패밀리오피스 현황</h2>
+      <div id="foGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:8px"></div>
+    </div>
+  </div>
+
   <!-- 신호 테이블 -->
   <div class="table-card">
     <h2>최근 발굴 신호 20건</h2>
@@ -155,6 +163,34 @@ const STATS = null;
   document.getElementById('kpiRubric').textContent   = fmt(s.avg_rubric, '/10');
   document.getElementById('kpiHitMiss').textContent  = (s.hit_count||0) + ' / ' + (s.miss_count||0);
   document.getElementById('kpiHitMiss').className    = 'value ' + clr((s.hit_count||0) - (s.miss_count||0));
+
+  // 패밀리오피스 현황 카드
+  const fo = STATS.fo || {};
+  const foItems = [
+    { label:'① 리스크관리팀', icon: fo.risk?(fo.risk.warnings&&fo.risk.warnings.length?'⚠️':'✅'):'—',
+      main: fo.risk?`리스크 ${fo.risk.risk_level||'—'}`:'데이터 없음',
+      sub:  fo.risk?`${(fo.risk.total_krw||0).toLocaleString()}원`:'',
+      time: fo.risk?(fo.risk.updated_at||'').slice(0,16).replace('T',' '):'' },
+    { label:'② 투자위원회', icon:'🏛',
+      main: fo.committee?`수익률 ${fo.committee.total_ret>0?'+':''}${fo.committee.total_ret||0}%`:'데이터 없음',
+      sub:  fo.committee?(fo.committee.tickers||[]).join(' '):'' ,
+      time: fo.committee?(fo.committee.updated_at||'').slice(0,16).replace('T',' '):'' },
+    { label:'③ 실수감시팀', icon: fo.mistakes?(fo.mistakes.alert_count>0?'⚠️':'✅'):'—',
+      main: fo.mistakes?`경고 ${fo.mistakes.alert_count||0}건`:'데이터 없음',
+      sub:  fo.mistakes&&fo.mistakes.alert_count>0?(fo.mistakes.tickers||[]).join(', '):'이상 없음',
+      time: fo.mistakes?(fo.mistakes.updated_at||'').slice(0,16).replace('T',' '):'' },
+    { label:'④ Regime 엔진', icon: fo.regime?fo.regime.icon:'—',
+      main: fo.regime?`${fo.regime.regime} (${fo.regime.score>=0?'+':''}${fo.regime.score}점)`:'데이터 없음',
+      sub:  fo.regime?fo.regime.alloc:'',
+      time: fo.regime?(fo.regime.updated_at||'').slice(0,16).replace('T',' '):'' },
+  ];
+  document.getElementById('foGrid').innerHTML = foItems.map(item=>`
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${item.label}</div>
+      <div style="margin-bottom:4px;">${item.icon} <b>${item.main}</b></div>
+      <div style="font-size:11px;color:var(--muted);">${item.sub}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">${item.time}</div>
+    </div>`).join('');
 
   // Trend chart
   if (STATS.trend && STATS.trend.length > 0) {

@@ -10,7 +10,6 @@
 """
 import json, os, sys
 import openpyxl
-import requests
 import yfinance as yf
 from datetime import datetime
 from collections import defaultdict
@@ -18,6 +17,7 @@ from collections import defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
 
 import groq_client
+from fo_utils import save_status, send as tg_send
 
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 EXCEL_PATH = r'C:\Users\DeskTop\OneDrive\문서\GMCapital_투자일지.xlsx'
@@ -207,16 +207,6 @@ def _groq_risk_analysis(positions, sector_summary, total_krw, usdkrw):
         return f'[리스크 분석 오류] {e}'
 
 
-def _send_telegram(text):
-    token   = _cfg['telegram_token']
-    chat_id = _cfg['telegram_chat_id']
-    requests.post(
-        f'https://api.telegram.org/bot{token}/sendMessage',
-        json={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'},
-        timeout=15,
-    )
-
-
 def run_risk_check():
     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M")}] 리스크관리팀 점검 시작...')
 
@@ -242,38 +232,41 @@ def run_risk_check():
 
     analysis = _groq_risk_analysis(positions, sector_sum, total_krw, usdkrw)
 
-    # 편중 경고 여부 (50% 초과)
-    warnings = [s for s in sector_sum if s['pct'] >= 50]
+    warnings  = [s for s in sector_sum if s['pct'] >= 50]
     warn_icon = '⚠️' if warnings else '✅'
 
+    # 리스크 수준 파싱
+    risk_level = '보통'
+    for line in analysis.splitlines():
+        if '[리스크 수준]' in line or '리스크 수준:' in line:
+            risk_level = line.split()[-1]
+            break
+
     now_str = datetime.now().strftime('%m/%d %H:%M')
-    lines = [
-        f'<b>{warn_icon} 리스크관리팀 일일 점검  {now_str}</b>',
+
+    # 섹터 비중 한 줄 압축
+    sector_line = ' | '.join(
+        f"{'🔴' if s['pct']>=50 else ('🟡' if s['pct']>=30 else '🟢')}{s['sector']} {s['pct']}%"
+        for s in sector_sum
+    )
+
+    msg = '\n'.join([
+        f'<b>{warn_icon} 리스크관리팀  {now_str}  |  리스크 {risk_level}</b>',
+        f'<b>💰 {int(total_krw):,}원</b>  <i>(환율 {usdkrw:.0f})</i>',
         '',
-        '<b>📊 포트폴리오 현황</b>',
-    ]
-    for p in positions:
-        acc = p['account']
-        val = f"{p['value_krw']:,}원"
-        lines.append(f"  {p['ticker']} ({p['name'][:8]}) — {val} [{p['sector']}]")
+        sector_line,
+        '',
+        analysis,
+    ])
 
-    lines.append('')
-    lines.append('<b>🗂 섹터 비중</b>')
-    for s in sector_sum:
-        bar  = '🔴' if s['pct'] >= 50 else ('🟡' if s['pct'] >= 30 else '🟢')
-        lines.append(f"  {bar} {s['sector']}: {s['pct']}%")
+    tg_send(msg)
 
-    lines.append('')
-    lines.append(f'<b>💰 총 평가액: {int(total_krw):,}원</b>')
-    lines.append(f'<i>(USD/KRW {usdkrw:.0f} 기준)</i>')
-    lines.append('')
-    lines.append('<b>🔍 리스크 분석</b>')
-    lines.append(analysis)
-    lines.append('')
-    lines.append('<i>* GM Capital 리스크관리팀 — AI 패밀리오피스 ①</i>')
-
-    msg = '\n'.join(lines)
-    _send_telegram(msg)
+    save_status('risk', {
+        'risk_level': risk_level,
+        'total_krw':  int(total_krw),
+        'warnings':   [s['sector'] for s in warnings],
+        'sector_top': sector_sum[0] if sector_sum else {},
+    })
     print('✅ 리스크 리포트 발송 완료!')
 
 
