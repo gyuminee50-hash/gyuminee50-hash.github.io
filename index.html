@@ -389,7 +389,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>19</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>21</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
@@ -410,7 +410,7 @@
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>텔레그램 수신 스케줄</h3>
-      <div class="sub">19개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①②)</div>
+      <div class="sub">21개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①②③④)</div>
       <div class="schedule-list">
 
         <!-- ── 매일 (무조건 옴) ── -->
@@ -445,6 +445,16 @@
           <div class="sched-dot active" style="border-color:#22c55e;background:#22c55e"></div>
           <div class="sched-time">07:00</div>
           <div class="sched-desc">리스크관리팀 [패밀리오피스 ①] — 포트폴리오 섹터 편중 분석 + Groq 리스크 경고</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#22c55e;background:#22c55e"></div>
+          <div class="sched-time">08:30</div>
+          <div class="sched-desc">실수감시팀 [패밀리오피스 ③] — FOMO·손절회피 감지. 문제 있을 때만 전송 (0건 정상)</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#22c55e;background:#22c55e"></div>
+          <div class="sched-time">22:30</div>
+          <div class="sched-desc">Regime 엔진 [패밀리오피스 ④] — VIX·금리·모멘텀·달러 점수화 → 5단계 국면 + 자산배분 권고</div>
         </div>
 
         <!-- ── 조건부 (해당 이슈 있을 때만 옴) ── -->
@@ -685,6 +695,24 @@
       <div class="auto-desc">보유 전 종목 Bull/Bear/중립 토론 자동 생성. Groq 70B — 근거 없으면 "뚜렷한 반론 없음" 인정, 억지 토론 금지. CEO 최종 판단용 리포트 발송. 매주 월요일.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">investment_committee.py</div>
+    </div>
+
+    <div class="auto-card cond">
+      <span class="auto-badge cond">COND</span>
+      <div class="auto-time">08:30</div>
+      <div class="auto-name">실수감시팀 [패밀리오피스 ③]</div>
+      <div class="auto-desc">FOMO 감지(매수 전 30일 20%+ 급등 후 매수 패턴) + 손절회피 감지(손실 -25% 이하 보유). Groq 70B 심리 패턴 분석 — 문제 있을 때만 경고 발송. 0건 정상.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">mistake_monitor.py</div>
+    </div>
+
+    <div class="auto-card report">
+      <span class="auto-badge report">AUTO</span>
+      <div class="auto-time">22:30</div>
+      <div class="auto-name">시장 Regime 엔진 [패밀리오피스 ④]</div>
+      <div class="auto-desc">VIX / 10년물 금리 / S&P500 90일 모멘텀 / 달러지수 4개 항목 점수화(±2점). 총점으로 Strong Risk-On ~ Strong Risk-Off 5단계 국면 판단 + 자산배분 권고 발송.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">regime_engine.py</div>
     </div>
 
   </div>
