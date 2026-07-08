@@ -44,8 +44,8 @@ SECTOR_MAP = {
     'MU':   '반도체',
     'GGLL': '빅테크레버리지',
     'IEMG': '신흥국ETF',
-    'SPYM': '미국시장ETF',
-    'QLD':  '미국기술주ETF',
+    'SPY':  '미국시장ETF',
+    'QQQ':  '미국기술주ETF',
     # 기타 공통
     'NVDA': '반도체',
     'AMD':  '반도체',
@@ -177,7 +177,7 @@ _RISK_PROMPT = """\
 
 원칙:
 - 섹터 비중 50% 초과 = 편중 경고
-- 레버리지 ETF(GGLL, QLD 등) 보유는 변동성 리스크로 별도 언급
+- 레버리지 ETF(GGLL 등) 보유는 변동성 리스크로 별도 언급
 - 억지 경고 금지 — 실제 리스크만"""
 
 def _groq_risk_analysis(positions, sector_summary, total_krw, usdkrw):

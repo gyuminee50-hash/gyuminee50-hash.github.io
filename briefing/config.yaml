@@ -1,6 +1,6 @@
 universe:
-  exclude_holdings: [TSM, MU, GGLL, IEMG, SPYM, QLD]
-  holdings_watch:   [TSM, MU, GGLL, IEMG, SPYM, QLD]
+  exclude_holdings: [TSM, MU, GGLL, IEMG, SPY, QQQ]
+  holdings_watch:   [TSM, MU, GGLL, IEMG, SPY, QQQ]
 
 discovery:
   absolute_threshold: 7    # 루브릭 총점 이 이상이면 전부 발송 (개수 상한 없음)
