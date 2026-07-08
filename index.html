@@ -575,7 +575,7 @@
         <div class="sched-item">
           <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
           <div class="sched-time">09:00</div>
-          <div class="sched-desc">가격 알림 — 보유 5종목 52주 신고/신저 돌파 or 이상 거래량 발생 시만</div>
+          <div class="sched-desc">가격 알림 — 보유 6종목 52주 신고/신저 돌파 시만 (이상 거래량은 volume_scanner 담당)</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
@@ -590,7 +590,7 @@
         <div class="sched-item">
           <div class="sched-dot active" style="border-color:#f97316;background:#f97316"></div>
           <div class="sched-time">23~06시</div>
-          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간 감시, 거래량 2x + 주가 3% + Groq 선행신호 있음 (AND 3가지) 시만</div>
+          <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간 감시. 급락: 매수판단(강매수검토/매수검토/모니터링/회피) / 급등: 선행신호 체크. 회피·선행신호없음 제외 후 전송</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
@@ -665,7 +665,7 @@
       <span class="auto-badge signal">SIGNAL</span>
       <div class="auto-time">23~06시</div>
       <div class="auto-name">이상 거래량 스캐너</div>
-      <div class="auto-desc">S&amp;P500+나스닥100 매 시간 스캔. 거래량 2x + 주가 3% + Groq "선행신호 있음" AND 3가지 동시 충족 시만 전송. 0건도 정상.</div>
+      <div class="auto-desc">S&amp;P500+나스닥100 매 시간 스캔. 거래량 2x + 주가 3% 동시 충족 시 Groq 판단. 급락: 매수판단(강매수/매수검토/모니터링/회피), 급등: 선행신호 체크. 회피·선행없음 제외 후 최대 3건 전송. 0건 정상.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">volume_scanner.py</div>
     </div>
@@ -746,7 +746,7 @@
       <span class="auto-badge cond">COND</span>
       <div class="auto-time">06:30</div>
       <div class="auto-name">보유종목 모니터링</div>
-      <div class="auto-desc">보유 6종목(TSM·MU·GGLL·IEMG·SPYM·QLD) 전용 채널. 긴급도 높음(급락·중대뉴스·매도신호)만 알림. 평소 침묵 — 발굴 채널과 완전 분리.</div>
+      <div class="auto-desc">보유 6종목(TSM·MU·GGLL·IEMG·SPY·QQQ) 전용 채널. 긴급도 높음(급락·중대뉴스·매도신호)만 알림. 평소 침묵 — 발굴 채널과 완전 분리.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">holdings_monitor.py</div>
     </div>

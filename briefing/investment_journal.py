@@ -495,9 +495,9 @@ def _init_holdings(wb):
     us_rows = [
         (today, '매수', 'MU',   'Micron Technology',        708.46,   2, 1501.5,  '초기보유'),
         (today, '매수', 'IEMG', 'iShares Core MSCI EM',    70.5376,  13, 1467.48, '초기보유'),
-        (today, '매수', 'SPYM', 'SPDR Portfolio S&P500',   80.7258,  24, 1464.67, '초기보유'),
+        (today, '매수', 'SPY',  'SPDR S&P500 ETF',          80.7258,  24, 1464.67, '초기보유'),
         (today, '매수', 'GGLL', 'GraniteShares 2x GOOGL', 113.7276,  17, 1492.42, '초기보유'),
-        (today, '매수', 'QLD',  'ProShares Ultra QQQ 2X',  85.0420,  24, 1463.62, '초기보유'),
+        (today, '매수', 'QQQ',  'Invesco QQQ Trust',        85.0420,  24, 1463.62, '초기보유'),
         (today, '매수', 'TSM',  'TSMC ADR',                406.7400,   1, 1499.79, '초기보유'),
     ]
     fmts_dom = [None, None, None, None, FMT_INT, FMT_INT, None]           # 7 cols

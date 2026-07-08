@@ -159,12 +159,31 @@ def _fetch_ticker_news(ticker, max_items=4):
     except Exception:
         return ''
 
-_SIGNAL_CHECK_PROMPT = """\
+_DROP_CHECK_PROMPT = """\
 종목: {ticker}
-오늘 {chg:+.1f}% 가격 이동, 거래량 평소의 {vol:.1f}배
+오늘 {chg:+.1f}% 급락, 거래량 평소의 {vol:.1f}배
 최신 뉴스 헤드라인: {news}
 
-이 급등락에 "시장에 아직 미반영된 선행신호"가 있는가?
+이 급락의 성격을 판단하라.
+아래 형식으로만 응답. 다른 텍스트 없이:
+
+급락성격: 일시적 / 구조적 / 불명확
+매수판단: 강매수검토 / 매수검토 / 모니터링 / 회피
+이유: (30자 이내)
+뉴스출처: (있을 때만)
+
+원칙:
+- 일시적: 단기 이슈·과매도·비펀더멘털 원인 → 강매수검토/매수검토
+- 불명확: 원인 파악 어려움 → 모니터링
+- 구조적: 비즈니스 훼손·규제·재무위험 → 회피
+- 확신 없으면 불명확 + 모니터링"""
+
+_SURGE_CHECK_PROMPT = """\
+종목: {ticker}
+오늘 {chg:+.1f}% 급등, 거래량 평소의 {vol:.1f}배
+최신 뉴스 헤드라인: {news}
+
+이 급등에 "시장에 아직 미반영된 선행신호"가 있는가?
 아래 형식으로만 응답. 다른 텍스트 없이:
 
 선행신호: 있음 / 없음
@@ -175,19 +194,32 @@ _SIGNAL_CHECK_PROMPT = """\
 원칙: 확신 없으면 없음. 0건 정상."""
 
 def _groq_signal_check(ticker, price_chg, vol_ratio):
-    """Groq에 선행신호 여부 판단 요청. (has_signal, info_dict) 반환."""
+    """Groq 판단 요청. 급락: 매수 판단, 급등: 선행신호 판단. (has_signal, info_dict) 반환."""
     news = _fetch_ticker_news(ticker)
     if not news:
         return False, {}
     try:
-        raw   = groq_client.call(
-            _SIGNAL_CHECK_PROMPT.format(ticker=ticker, chg=price_chg, vol=vol_ratio, news=news),
-            max_tokens=180, temperature=0.2,
-        )
-        lines = {l.split(':')[0].strip(): ':'.join(l.split(':')[1:]).strip()
-                 for l in raw.strip().splitlines() if ':' in l}
-        has   = '있음' in lines.get('선행신호', '없음')
-        return has, lines
+        if price_chg < 0:
+            raw = groq_client.call(
+                _DROP_CHECK_PROMPT.format(ticker=ticker, chg=price_chg, vol=vol_ratio, news=news),
+                max_tokens=180, temperature=0.2,
+            )
+            lines = {l.split(':')[0].strip(): ':'.join(l.split(':')[1:]).strip()
+                     for l in raw.strip().splitlines() if ':' in l}
+            lines['_type'] = 'drop'
+            # 회피만 제외, 나머지는 통과 (강매수검토/매수검토/모니터링)
+            has = '회피' not in lines.get('매수판단', '회피')
+            return has, lines
+        else:
+            raw = groq_client.call(
+                _SURGE_CHECK_PROMPT.format(ticker=ticker, chg=price_chg, vol=vol_ratio, news=news),
+                max_tokens=180, temperature=0.2,
+            )
+            lines = {l.split(':')[0].strip(): ':'.join(l.split(':')[1:]).strip()
+                     for l in raw.strip().splitlines() if ':' in l}
+            lines['_type'] = 'surge'
+            has = '있음' in lines.get('선행신호', '없음')
+            return has, lines
     except Exception as e:
         print(f'    [Groq 판단 오류 {ticker}] {e}')
         return False, {}
@@ -286,29 +318,46 @@ def _explain(ticker, price_chg, vol_ratio):
 # ── 메시지 포맷 ─────────────────────────────────────────────────────
 def format_alert(signals):
     now_str = datetime.now().strftime('%m/%d %H:%M')
-    lines   = [f'<b>🔍 선행신호 포착  {now_str}</b>\n']
+    lines   = [f'<b>📡 이상거래량 신호  {now_str}</b>\n']
 
     for s in signals:
         _, icon = _signal_type(s['price_chg'])
         sign = '+' if s['price_chg'] >= 0 else ''
         info = s.get('signal_info', {})
+        is_drop = s['price_chg'] < 0
 
-        lines.append(f'<b>[선행신호 포착]</b>')
-        lines.append(
-            f'{icon} <b>{s["ticker"]}</b>  '
-            f'<b>{sign}{s["price_chg"]:.1f}%</b>  |  거래량 {s["vol_ratio"]:.1f}x'
-        )
-        if info.get('신호내용'):
-            lines.append(f'신호: {info["신호내용"]}')
-        if info.get('뉴스출처'):
-            lines.append(f'출처: {info["뉴스출처"]}')
-        if info.get('판단'):
-            lines.append(f'판단: {info["판단"]}')
+        if is_drop:
+            lines.append(f'<b>📉 급락 — 매수검토</b>')
+            lines.append(
+                f'{icon} <b>{s["ticker"]}</b>  '
+                f'<b>{sign}{s["price_chg"]:.1f}%</b>  |  거래량 {s["vol_ratio"]:.1f}x'
+            )
+            if info.get('급락성격'):
+                lines.append(f'성격: {info["급락성격"]}')
+            if info.get('매수판단'):
+                lines.append(f'판단: <b>{info["매수판단"]}</b>')
+            if info.get('이유'):
+                lines.append(f'이유: {info["이유"]}')
+            if info.get('뉴스출처'):
+                lines.append(f'출처: {info["뉴스출처"]}')
+        else:
+            lines.append(f'<b>🚀 급등 — 선행신호</b>')
+            lines.append(
+                f'{icon} <b>{s["ticker"]}</b>  '
+                f'<b>{sign}{s["price_chg"]:.1f}%</b>  |  거래량 {s["vol_ratio"]:.1f}x'
+            )
+            if info.get('신호내용'):
+                lines.append(f'신호: {info["신호내용"]}')
+            if info.get('뉴스출처'):
+                lines.append(f'출처: {info["뉴스출처"]}')
+            if info.get('판단'):
+                lines.append(f'판단: {info["판단"]}')
+
         lines.append(f'현재가 ${s["price"]}')
         lines.append('')
 
-    lines.append('<i>* 기준: 거래량 2x + 주가 3% + Groq 선행신호 있음 (AND 3가지)</i>')
-    lines.append('<i>  0건도 정상 — GM Capital 원칙</i>')
+    lines.append('<i>* 급락: 회피 제외(강매수검토/매수검토/모니터링 전송)</i>')
+    lines.append('<i>  급등: Groq 선행신호 있음만 전송 / 0건 정상</i>')
     return '\n'.join(lines)
 
 # ── 메인 ────────────────────────────────────────────────────────────
