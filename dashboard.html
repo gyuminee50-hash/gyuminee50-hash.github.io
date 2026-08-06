@@ -141,21 +141,17 @@
 <script>
 /* __DASHBOARD_DATA__ */
 const STATS = {
-  "generated_at": "2026-08-06T00:15:01.939535",
+  "generated_at": "2026-08-07T00:15:01.983975",
   "summary": {
-    "total_signals": 68,
-    "evaluated": 54,
-    "hit_count": 9,
+    "total_signals": 73,
+    "evaluated": 56,
+    "hit_count": 10,
     "miss_count": 14,
-    "hit_rate_pct": 16.7,
-    "avg_alpha_pct": -4.31,
+    "hit_rate_pct": 17.9,
+    "avg_alpha_pct": -3.69,
     "avg_rubric": 7.9
   },
   "trend": [
-    {
-      "date": "2026-07-06",
-      "count": 2
-    },
     {
       "date": "2026-07-07",
       "count": 4
@@ -235,6 +231,10 @@ const STATS = {
     {
       "date": "2026-08-05",
       "count": 3
+    },
+    {
+      "date": "2026-08-06",
+      "count": 5
     }
   ],
   "by_type": [
@@ -261,6 +261,11 @@ const STATS = {
     {
       "type": "M&A",
       "count": 2,
+      "hits": 0
+    },
+    {
+      "type": "NII Growth",
+      "count": 1,
       "hits": 0
     },
     {
@@ -304,8 +309,13 @@ const STATS = {
       "hits": 0
     },
     {
+      "type": "대규모수주",
+      "count": 1,
+      "hits": 0
+    },
+    {
       "type": "설비증설",
-      "count": 5,
+      "count": 6,
       "hits": 1
     },
     {
@@ -315,17 +325,17 @@ const STATS = {
     },
     {
       "type": "실적서프라이즈",
-      "count": 14,
+      "count": 15,
       "hits": 1
     },
     {
       "type": "예상 외 실적",
       "count": 1,
-      "hits": 0
+      "hits": 1
     },
     {
       "type": "이상거래량",
-      "count": 6,
+      "count": 7,
       "hits": 0
     },
     {
@@ -340,6 +350,56 @@ const STATS = {
     }
   ],
   "recent": [
+    {
+      "date": "2026-08-06",
+      "ticker": "UTI",
+      "type": "설비증설",
+      "headline": "Universal Technical Institute, Inc. 2026 Q3 - Results - Earnings Call Presentation",
+      "rubric": 8,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "ARCC",
+      "type": "NII Growth",
+      "headline": "Ares Capital: 104% Coverage, NII Growth, Stable Dividend For Now",
+      "rubric": 8,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "LLY",
+      "type": "실적서프라이즈",
+      "headline": "We're increasing our Eli Lilly price target after another beat-and-raise quarter",
+      "rubric": 7,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "SHAK",
+      "type": "대규모수주",
+      "headline": "Activist investor Starboard takes stake in Shake Shack, source says: Reuters",
+      "rubric": 9,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
+    {
+      "date": "2026-08-06",
+      "ticker": "UBER",
+      "type": "이상거래량",
+      "headline": "UBER -6.7%",
+      "rubric": null,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
     {
       "date": "2026-08-05",
       "ticker": "AMD",
@@ -446,9 +506,9 @@ const STATS = {
       "type": "예상 외 실적",
       "headline": "Fed keeps rates steady. The big question now: What will Microsoft and Meta say on AI capex?",
       "rubric": 8,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "hit",
+      "ret5": 27.2,
+      "alpha5": 21.5
     },
     {
       "date": "2026-07-30",
@@ -456,9 +516,9 @@ const STATS = {
       "type": "실적서프라이즈",
       "headline": "Starbucks stock jumps as coffee giant raises full-year outlook",
       "rubric": 8,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "neutral",
+      "ret5": -0.1,
+      "alpha5": -5.7
     },
     {
       "date": "2026-07-29",
@@ -489,56 +549,6 @@ const STATS = {
       "verdict": "neutral",
       "ret5": 1.6,
       "alpha5": -1.8
-    },
-    {
-      "date": "2026-07-26",
-      "ticker": "TTWO",
-      "type": "기타",
-      "headline": "Take-Two Interactive: After November 19th, The Gaming World Won't Be The Same",
-      "rubric": 7,
-      "verdict": "hit",
-      "ret5": 3.0,
-      "alpha5": 2.8
-    },
-    {
-      "date": "2026-07-26",
-      "ticker": "BAC",
-      "type": "정책수혜",
-      "headline": "Bank of America: A Welcome Dividend Increase",
-      "rubric": 7,
-      "verdict": "neutral",
-      "ret5": -0.3,
-      "alpha5": -0.5
-    },
-    {
-      "date": "2026-07-24",
-      "ticker": "POOL",
-      "type": "설비증설",
-      "headline": "Pool Corporation 2026 Q2 - Results - Earnings Call Presentation",
-      "rubric": 8,
-      "verdict": "neutral",
-      "ret5": 2.2,
-      "alpha5": 1.9
-    },
-    {
-      "date": "2026-07-24",
-      "ticker": "DBV",
-      "type": "실적서프라이즈",
-      "headline": "DBV Technologies: Viaskin's FDA Path Still Leaves Room For More Upside",
-      "rubric": 8,
-      "verdict": "unknown",
-      "ret5": null,
-      "alpha5": null
-    },
-    {
-      "date": "2026-07-24",
-      "ticker": "ORCL",
-      "type": "신규계약",
-      "headline": "Oracle signs 10-year software contract with Pentagon worth up to $7 billion",
-      "rubric": 10,
-      "verdict": "hit",
-      "ret5": 5.6,
-      "alpha5": 5.3
     }
   ],
   "fo": {
@@ -549,24 +559,24 @@ const STATS = {
       "icon": "⚖️",
       "vix": 20.0,
       "rate10y": 4.5,
-      "updated_at": "2026-08-05T22:30:11.655104"
+      "updated_at": "2026-08-06T22:30:14.182496"
     },
-    "last_updated": "2026-08-05T22:30:11.655116",
+    "last_updated": "2026-08-06T22:30:14.182509",
     "risk": {
       "risk_level": "높음",
-      "total_krw": 58896026,
+      "total_krw": 58095474,
       "warnings": [],
       "sector_top": {
         "sector": "미국시장ETF",
-        "value": 26444278.0,
-        "pct": 44.9
+        "value": 26268991.0,
+        "pct": 45.2
       },
-      "updated_at": "2026-08-05T07:00:18.830384"
+      "updated_at": "2026-08-06T07:00:11.431875"
     },
     "mistakes": {
       "alert_count": 0,
       "tickers": [],
-      "updated_at": "2026-08-05T08:30:08.307546"
+      "updated_at": "2026-08-06T08:30:07.946225"
     },
     "committee": {
       "tickers": [
