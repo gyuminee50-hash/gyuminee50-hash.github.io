@@ -497,7 +497,7 @@
 
 <div class="status-bar">
   <div class="status-item"><strong class="up">운영중</strong>시스템 상태</div>
-  <div class="status-item"><strong>21</strong>자동화 스크립트</div>
+  <div class="status-item"><strong>23</strong>자동화 스크립트</div>
   <div class="status-item"><strong id="sb-usdkrw">—</strong>USD/KRW</div>
   <div class="status-item"><strong>매일 06:30</strong>모닝 브리핑</div>
 </div>
@@ -518,7 +518,7 @@
   <div class="ops-grid" style="grid-template-columns:1fr">
     <div class="ops-card">
       <h3>텔레그램 수신 스케줄</h3>
-      <div class="sub">21개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①②③④)</div>
+      <div class="sub">23개 자동화 — 매일 / 조건부 / 주간 3개 구간으로 운영 (AI 패밀리오피스 ①②③④)</div>
       <div class="schedule-list">
 
         <!-- ── 매일 (무조건 옴) ── -->
@@ -591,6 +591,16 @@
           <div class="sched-dot active" style="border-color:#f97316;background:#f97316"></div>
           <div class="sched-time">23~06시</div>
           <div class="sched-desc">이상 거래량 스캐너 — S&amp;P500+나스닥100 매 시간 감시. 급락: 매수판단(강매수검토/매수검토/모니터링/회피) / 급등: 선행신호 체크. 회피·선행신호없음 제외 후 전송</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#ef4444;background:#ef4444"></div>
+          <div class="sched-time">22:00</div>
+          <div class="sched-desc">사전 분할매수 신호 — S&amp;P500+NDX100 전종목 스캔. 20일 고점 -15%↓ + RSI 38↓ 필터 → Groq 반등가능성 보통 이상만 최대 3건 발송. 0건 정상.</div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-dot active" style="border-color:#ef4444;background:#ef4444"></div>
+          <div class="sched-time">22:30</div>
+          <div class="sched-desc">사전 분할매도 신호 — 보유 6종목 RSI 과매수(GGLL 65+, 일반 70+) / 50일MA 이탈 / VIX 25+ 시 Groq 1차·2차 분할매도 전략 발송. 0건 정상.</div>
         </div>
         <div class="sched-item">
           <div class="sched-dot active" style="border-color:#eab308;background:#eab308"></div>
@@ -818,9 +828,27 @@
       <span class="auto-badge report">AUTO</span>
       <div class="auto-time">22:30</div>
       <div class="auto-name">시장 Regime 엔진 [패밀리오피스 ④]</div>
-      <div class="auto-desc">VIX / 10년물 금리 / S&P500 90일 모멘텀 / 달러지수 4개 항목 점수화(±2점). 총점으로 Strong Risk-On ~ Strong Risk-Off 5단계 국면 판단 + 자산배분 권고 발송.</div>
+      <div class="auto-desc">VIX / 10년물 금리 / S&P500 90일 모멘텀 / 달러지수 4개 항목 점수화(±2점). 총점으로 Strong Risk-On ~ Strong Risk-Off 5단계 국면 판단 + 자산배분 권고 발송. VIX 조회 실패 시 캐시→보수적 기본값 자동 폴백.</div>
       <div class="auto-status">ACTIVE</div>
       <div class="auto-file">regime_engine.py</div>
+    </div>
+
+    <div class="auto-card signal">
+      <span class="auto-badge signal">SIGNAL</span>
+      <div class="auto-time">22:30</div>
+      <div class="auto-name">사전 분할매도 신호 [AP팀]</div>
+      <div class="auto-desc">보유 6종목(TSM·MU·GGLL·IEMG·SPY·QQQ) RSI 과매수(GGLL 65+, 일반 70+) / 50일MA 2% 이탈 / VIX 25+ 조건 감지. Severity 2+ 시 Groq가 1차·2차 분할매도 전략 생성. 일별 중복 방지 로그 + VIX 캐시. 0건 정상.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">sell_signal.py</div>
+    </div>
+
+    <div class="auto-card signal">
+      <span class="auto-badge signal">SIGNAL</span>
+      <div class="auto-time">22:00</div>
+      <div class="auto-name">사전 분할매수 신호 [AP팀]</div>
+      <div class="auto-desc">S&amp;P500+NDX100 전종목 스캔 (보유종목 제외). 20일 고점 대비 -15%↓ + RSI 38↓ 필터 → Groq 반등가능성 판단. 보통/높음만 최대 3건 발송. volume_scanner 캐시(sp500_cache.json) 재사용. 일별 중복 방지 로그. 0건 정상.</div>
+      <div class="auto-status">ACTIVE</div>
+      <div class="auto-file">buy_signal.py</div>
     </div>
 
   </div>

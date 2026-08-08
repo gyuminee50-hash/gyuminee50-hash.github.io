@@ -16,9 +16,25 @@ sys.stdout.reconfigure(encoding='utf-8')
 import groq_client
 from fo_utils import save_status, send as tg_send
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+_CACHE_FILE = os.path.join(BASE_DIR, 'regime_cache.json')
+
 with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
+
+def _load_regime_cache():
+    try:
+        with open(_CACHE_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _save_regime_cache(data):
+    try:
+        with open(_CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+    except Exception:
+        pass
 
 # ── 국면 판단 기준표 ───────────────────────────────────────────────
 REGIME_TABLE = [
@@ -108,14 +124,35 @@ GM Capital 포트폴리오(반도체·미국기술주ETF·신흥국ETF)에 대�
 
 간결하게. 50자 이내 각 줄."""
 
+def _with_cache(key, live_val, cache, fallback, label):
+    """live 조회 실패 시 캐시 → 보수적 기본값 순서로 폴백."""
+    if live_val is not None:
+        return live_val, 'live'
+    cached = cache.get(key)
+    if cached is not None:
+        print(f'  [{label} 캐시 사용] {cached}')
+        return cached, 'cache'
+    print(f'  [{label} 캐시 없음] 보수적 기본값 {fallback} 적용')
+    return fallback, 'fallback'
+
+
 def run_regime():
     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M")}] Regime 엔진 실행...')
 
-    # ── 데이터 수집 ─────────────────────────────────────────────────
-    vix       = _fetch('^VIX')
-    rate_10y  = _fetch('^TNX')                   # 10년물 금리 (%)
-    spy_chg   = _fetch_change_pct('SPY',  90)    # S&P500 90일
-    dxy_chg   = _fetch_change_pct('DX-Y.NYB', 30) # 달러지수 30일
+    cache = _load_regime_cache()
+
+    # ── 데이터 수집 (실패 시 캐시 → 보수적 기본값) ────────────────────
+    # VIX 기본값 20.0 = -1점 (불안정), 금리 기본값 4.5 = -1점 (긴축 압박)
+    vix,      _ = _with_cache('vix',      _fetch('^VIX'),                    cache, 20.0,  'VIX')
+    rate_10y,  _ = _with_cache('rate10y', _fetch('^TNX'),                    cache, 4.5,   '금리')
+    spy_chg,   _ = _with_cache('spy_chg', _fetch_change_pct('SPY',  90),     cache, None,  'SPY90d')
+    dxy_chg,   _ = _with_cache('dxy_chg', _fetch_change_pct('DX-Y.NYB', 30), cache, None, 'DXY30d')
+
+    # 성공한 값은 캐시에 갱신
+    _save_regime_cache({**cache,
+        **({k: v for k, v in [('vix', vix), ('rate10y', rate_10y),
+                               ('spy_chg', spy_chg), ('dxy_chg', dxy_chg)]
+            if v is not None})})
 
     print(f'  VIX={vix}  10Y={rate_10y}  SPY90d={spy_chg}  DXY30d={dxy_chg}')
 
