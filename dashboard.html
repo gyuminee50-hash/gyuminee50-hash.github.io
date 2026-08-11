@@ -141,14 +141,14 @@
 <script>
 /* __DASHBOARD_DATA__ */
 const STATS = {
-  "generated_at": "2026-08-11T00:15:02.023210",
+  "generated_at": "2026-08-12T00:15:02.085443",
   "summary": {
-    "total_signals": 76,
-    "evaluated": 58,
-    "hit_count": 12,
+    "total_signals": 79,
+    "evaluated": 63,
+    "hit_count": 14,
     "miss_count": 14,
-    "hit_rate_pct": 20.7,
-    "avg_alpha_pct": -3.1,
+    "hit_rate_pct": 22.2,
+    "avg_alpha_pct": -1.94,
     "avg_rubric": 7.9
   },
   "trend": [
@@ -231,11 +231,20 @@ const STATS = {
     {
       "date": "2026-08-10",
       "count": 1
+    },
+    {
+      "date": "2026-08-11",
+      "count": 3
     }
   ],
   "by_type": [
     {
       "type": "BLA Submission",
+      "count": 1,
+      "hits": 0
+    },
+    {
+      "type": "CEO 의견",
       "count": 1,
       "hits": 0
     },
@@ -302,7 +311,7 @@ const STATS = {
     {
       "type": "대규모 수주",
       "count": 3,
-      "hits": 0
+      "hits": 1
     },
     {
       "type": "대규모수주",
@@ -312,7 +321,7 @@ const STATS = {
     {
       "type": "설비증설",
       "count": 6,
-      "hits": 1
+      "hits": 2
     },
     {
       "type": "신규계약",
@@ -336,16 +345,46 @@ const STATS = {
     },
     {
       "type": "정책 수혜",
-      "count": 3,
+      "count": 4,
       "hits": 1
     },
     {
       "type": "정책수혜",
-      "count": 7,
+      "count": 8,
       "hits": 0
     }
   ],
   "recent": [
+    {
+      "date": "2026-08-11",
+      "ticker": "MSC",
+      "type": "정책 수혜",
+      "headline": "MSC Income Fund: Quality BDC At A Bargain Bin Valuation",
+      "rubric": 8,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
+    {
+      "date": "2026-08-11",
+      "ticker": "CRWD",
+      "type": "정책수혜",
+      "headline": "CrowdStrike, Palo Alto hit records after Black Hat cyber conference illuminates rising AI threat",
+      "rubric": 7,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
+    {
+      "date": "2026-08-11",
+      "ticker": "NVDA",
+      "type": "CEO 의견",
+      "headline": "Nvidia lines up $500 billion in financing as CEO Jensen Huang tells CNBC his chips are ‘investable asset’",
+      "rubric": 9,
+      "verdict": "pending",
+      "ret5": null,
+      "alpha5": null
+    },
     {
       "date": "2026-08-10",
       "ticker": "CEVA",
@@ -462,9 +501,9 @@ const STATS = {
       "type": "실적서프라이즈",
       "headline": "PTY: The Market's Valuation Does Not Reflect Fund Performance",
       "rubric": 7,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "neutral",
+      "ret5": 1.0,
+      "alpha5": -1.1
     },
     {
       "date": "2026-08-04",
@@ -472,9 +511,9 @@ const STATS = {
       "type": "설비증설",
       "headline": "Douglas Dynamics: Time To Plow In",
       "rubric": 9,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "hit",
+      "ret5": 3.2,
+      "alpha5": 1.1
     },
     {
       "date": "2026-08-04",
@@ -482,9 +521,9 @@ const STATS = {
       "type": "신규계약",
       "headline": "A trio of positive developments has Boeing shares soaring",
       "rubric": 8,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "neutral",
+      "ret5": 0.8,
+      "alpha5": -1.4
     },
     {
       "date": "2026-08-04",
@@ -492,9 +531,9 @@ const STATS = {
       "type": "신규계약",
       "headline": "'The Odyssey' fuels Imax stock to all-time high. CEO calls momentum a 'flywheel'",
       "rubric": 7,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "neutral",
+      "ret5": 1.9,
+      "alpha5": -0.2
     },
     {
       "date": "2026-08-04",
@@ -502,9 +541,9 @@ const STATS = {
       "type": "대규모 수주",
       "headline": "Stocks making the biggest moves after hours: Palantir, On Semiconductor, Snap & more",
       "rubric": 8,
-      "verdict": "pending",
-      "ret5": null,
-      "alpha5": null
+      "verdict": "hit",
+      "ret5": 40.6,
+      "alpha5": 38.5
     },
     {
       "date": "2026-08-03",
@@ -515,36 +554,6 @@ const STATS = {
       "verdict": "hit",
       "ret5": 23.3,
       "alpha5": 19.7
-    },
-    {
-      "date": "2026-08-01",
-      "ticker": "COIN",
-      "type": "이상거래량",
-      "headline": "COIN -9.6%",
-      "rubric": null,
-      "verdict": "hit",
-      "ret5": 3.8,
-      "alpha5": null
-    },
-    {
-      "date": "2026-07-30",
-      "ticker": "MSFT",
-      "type": "예상 외 실적",
-      "headline": "Fed keeps rates steady. The big question now: What will Microsoft and Meta say on AI capex?",
-      "rubric": 8,
-      "verdict": "hit",
-      "ret5": 27.2,
-      "alpha5": 21.5
-    },
-    {
-      "date": "2026-07-30",
-      "ticker": "SBUX",
-      "type": "실적서프라이즈",
-      "headline": "Starbucks stock jumps as coffee giant raises full-year outlook",
-      "rubric": 8,
-      "verdict": "neutral",
-      "ret5": -0.1,
-      "alpha5": -5.7
     }
   ],
   "fo": {
@@ -555,24 +564,24 @@ const STATS = {
       "icon": "⚖️",
       "vix": 20.0,
       "rate10y": 4.5,
-      "updated_at": "2026-08-10T22:30:10.353556"
+      "updated_at": "2026-08-11T22:30:18.014967"
     },
-    "last_updated": "2026-08-10T22:30:10.353567",
+    "last_updated": "2026-08-11T22:30:18.014981",
     "risk": {
       "risk_level": "높음",
-      "total_krw": 57656635,
+      "total_krw": 57991326,
       "warnings": [],
       "sector_top": {
         "sector": "미국시장ETF",
-        "value": 26117567.0,
-        "pct": 45.3
+        "value": 26302563.0,
+        "pct": 45.4
       },
-      "updated_at": "2026-08-10T07:00:12.440654"
+      "updated_at": "2026-08-11T07:00:12.164536"
     },
     "mistakes": {
       "alert_count": 0,
       "tickers": [],
-      "updated_at": "2026-08-10T08:30:08.198534"
+      "updated_at": "2026-08-11T08:30:08.294353"
     },
     "committee": {
       "tickers": [
