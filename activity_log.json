@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-22 21:00",
+  "updated": "2026-08-23 09:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -39,11 +39,11 @@
     }
   ],
   "inf": {
-    "kr_count": 14,
+    "kr_count": 39,
     "kr_sources": [
       "연합뉴스"
     ],
-    "us_count": 42,
+    "us_count": 57,
     "us_sources": [
       "Yahoo Finance",
       "CNBC",
