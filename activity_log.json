@@ -1,49 +1,49 @@
 {
-  "updated": "2026-08-25 21:00",
+  "updated": "2026-08-26 09:00",
   "portfolio": [
     {
       "sym": "TSM",
       "name": "TSMC",
-      "price": 410.12,
-      "chg": -2.11
+      "price": 417.41,
+      "chg": 1.78
     },
     {
       "sym": "MU",
       "name": "Micron",
-      "price": 910.43,
-      "chg": -5.83
+      "price": 932.97,
+      "chg": 2.48
     },
     {
       "sym": "GGLL",
       "name": "Alphabet 2x",
-      "price": 103.96,
-      "chg": 1.79
+      "price": 103.24,
+      "chg": -0.69
     },
     {
       "sym": "IEMG",
       "name": "신흥국 ETF",
-      "price": 80.49,
-      "chg": -1.32
+      "price": 81.89,
+      "chg": 1.74
     },
     {
       "sym": "SPY",
       "name": "S&P500",
-      "price": 763.47,
-      "chg": -0.29
+      "price": 765.91,
+      "chg": 0.32
     },
     {
       "sym": "QQQ",
       "name": "나스닥100 ETF",
-      "price": 706.32,
-      "chg": -1.0
+      "price": 710.72,
+      "chg": 0.62
     }
   ],
   "inf": {
-    "kr_count": 33,
+    "kr_count": 36,
     "kr_sources": [
       "연합뉴스"
     ],
-    "us_count": 48,
+    "us_count": 47,
     "us_sources": [
       "Yahoo Finance",
       "CNBC",
@@ -56,12 +56,12 @@
     ]
   },
   "vix": {
-    "value": 15.75,
+    "value": 15.45,
     "state": "🙂 보통 이하"
   },
   "fg": {
-    "value": 55,
-    "label": "중립",
+    "value": 59,
+    "label": "탐욕",
     "prev": null
   }
 }
