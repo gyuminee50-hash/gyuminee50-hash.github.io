@@ -1,22 +1,22 @@
 {
-  "updated": "2026-06-17 21:33",
+  "updated": "2026-08-31 22:27",
   "sectors": [
     {
       "etf": "XLK",
       "name": "기술",
-      "w1": 3.14,
-      "m1": 5.78,
-      "m3": 36.46,
+      "w1": 3.01,
+      "m1": 13.23,
+      "m3": 2.0,
       "stocks": [
         {
           "sym": "NVDA",
-          "price": 207.41,
-          "chg": -2.37
+          "price": NaN,
+          "chg": NaN
         },
         {
           "sym": "AAPL",
-          "price": 299.24,
-          "chg": 0.95
+          "price": NaN,
+          "chg": NaN
         }
       ],
       "link": "TSM·MU",
@@ -25,61 +25,61 @@
     {
       "etf": "XLF",
       "name": "금융",
-      "w1": 3.6,
-      "m1": 6.36,
-      "m3": 11.74,
+      "w1": 1.63,
+      "m1": 2.12,
+      "m3": 12.02,
       "stocks": [
         {
           "sym": "JPM",
-          "price": 331.14,
-          "chg": 3.68
+          "price": NaN,
+          "chg": NaN
         },
         {
           "sym": "V",
-          "price": 333.12,
-          "chg": 2.87
+          "price": NaN,
+          "chg": NaN
         }
       ],
       "link": "",
-      "rec": "금융 강세 = 금리 고원 지속 가능성 — 성장주 밸류에이션 중립"
+      "rec": "금융 — 금리 방향성 참고 지표로 활용"
+    },
+    {
+      "etf": "XLV",
+      "name": "헬스케어",
+      "w1": -0.47,
+      "m1": 3.21,
+      "m3": 16.04,
+      "stocks": [
+        {
+          "sym": "LLY",
+          "price": NaN,
+          "chg": NaN
+        },
+        {
+          "sym": "UNH",
+          "price": NaN,
+          "chg": NaN
+        }
+      ],
+      "link": "",
+      "rec": "방어 섹터 — 경기 둔화 헤지 관심 시 모니터링 가능"
     },
     {
       "etf": "XLB",
       "name": "소재",
-      "w1": 3.84,
-      "m1": 4.81,
-      "m3": 7.65,
+      "w1": 1.55,
+      "m1": 2.88,
+      "m3": 4.78,
       "stocks": [
         {
           "sym": "LIN",
-          "price": 518.17,
-          "chg": -0.63
+          "price": NaN,
+          "chg": NaN
         },
         {
           "sym": "APD",
-          "price": 280.48,
-          "chg": -0.88
-        }
-      ],
-      "link": "",
-      "rec": "현재 미보유 섹터 — 모멘텀 지속 시 모니터링 추가 검토 가능"
-    },
-    {
-      "etf": "XLI",
-      "name": "산업",
-      "w1": 2.42,
-      "m1": 4.93,
-      "m3": 9.54,
-      "stocks": [
-        {
-          "sym": "GE",
-          "price": 351.73,
-          "chg": 2.77
-        },
-        {
-          "sym": "CAT",
-          "price": 945.46,
-          "chg": 1.23
+          "price": NaN,
+          "chg": NaN
         }
       ],
       "link": "",
