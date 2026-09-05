@@ -232,7 +232,7 @@ def run_mistake_monitor():
                     buy_date=buy['date'], pre_surge=surge, cur_ret=cur_ret,
                 ),
                 max_tokens=150, temperature=0.2,
-                model='llama-3.3-70b-versatile',
+                model='qwen/qwen3.8-27b',
             )
         except Exception as e:
             analysis = f'분석 오류: {e}'
@@ -265,7 +265,7 @@ def run_mistake_monitor():
                     hold_days=hold_days,
                 ),
                 max_tokens=150, temperature=0.2,
-                model='llama-3.3-70b-versatile',
+                model='qwen/qwen3.8-27b',
             )
         except Exception as e:
             analysis = f'분석 오류: {e}'

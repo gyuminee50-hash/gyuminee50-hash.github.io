@@ -2,8 +2,10 @@
 야간 컨설팅 잡 — 매일 밤 23:00 실행
 DB 성적표 분석 → Groq 개선안 ≤3건 생성 → 텔레그램 발송
 """
-import json, os, sqlite3, yaml, requests
+import json, os, sys, sqlite3, yaml, requests
 from datetime import datetime, timedelta, date
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 import groq_client
 from db_setup import DB_PATH, get_conn
@@ -165,6 +167,9 @@ def run_consult():
         f"- {r['ticker']} [{r['type']}] 루브릭{r['rubric']} "
         f"→ {r['verdict'] or 'pending'} "
         f"(T+5={r['ret5']:.1f}% alpha={r['alpha5']:.1f}%)"
+        if r['ret5'] is not None and r['alpha5'] is not None else
+        f"- {r['ticker']} [{r['type']}] 루브릭{r['rubric']} "
+        f"→ {r['verdict'] or 'pending'} (T+5={r['ret5']:.1f}%)"
         if r['ret5'] is not None else
         f"- {r['ticker']} [{r['type']}] 루브릭{r['rubric']} → 채점대기"
         for r in recent
@@ -228,7 +233,7 @@ def run_consult():
         lines.extend(domain_insights)
         lines.append('')
 
-    lines.append('<i>* ROY 자가진화 컨설팅 — 승인/보류 여부를 알려주세요</i>')
+    lines.append('<i>* ROY 자가진화 컨설팅 — 내일 시간 되실 때 검토해주세요</i>')
 
     report_text = '\n'.join(lines)
     _send_telegram(report_text)

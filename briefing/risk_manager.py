@@ -201,7 +201,7 @@ def _groq_risk_analysis(positions, sector_summary, total_krw, usdkrw):
                 total_usd=total_usd,
             ),
             max_tokens=400, temperature=0.2,
-            model='llama-3.3-70b-versatile',
+            model='qwen/qwen3.8-27b',
         )
     except Exception as e:
         return f'[리스크 분석 오류] {e}'

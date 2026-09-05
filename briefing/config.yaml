@@ -32,6 +32,6 @@ insight:
   review_on_commit: true
 
 models:
-  scout: llama-3.1-8b-instant
-  judge: llama-3.3-70b-versatile
+  scout: qwen/qwen3.6-27b
+  judge: qwen/qwen3.8-27b
   daily_token_budget_70b: 90000

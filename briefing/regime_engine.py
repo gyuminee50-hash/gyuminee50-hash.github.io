@@ -175,7 +175,7 @@ def run_regime():
                 data_lines=data_lines,
             ),
             max_tokens=200, temperature=0.3,
-            model='llama-3.3-70b-versatile',
+            model='qwen/qwen3.8-27b',
         )
     except Exception as e:
         groq_summary = f'요약 생성 오류: {e}'

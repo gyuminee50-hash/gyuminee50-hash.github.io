@@ -121,8 +121,10 @@ def scan_oversold():
     print(f'  {len(targets)}개 종목 과매도 스캔...')
 
     try:
-        raw   = yf.download(targets, period='30d', interval='1d',
-                            auto_adjust=True, progress=False, threads=True)
+        import contextlib, io as _io
+        with contextlib.redirect_stderr(_io.StringIO()):
+            raw = yf.download(targets, period='30d', interval='1d',
+                              auto_adjust=True, progress=False, threads=True)
         close = raw['Close']
     except Exception as e:
         print(f'  [다운로드 오류] {e}')

@@ -161,7 +161,7 @@ def _debate(pos):
                 reasoning=pos['reasoning'],
             ),
             max_tokens=350, temperature=0.3,
-            model='llama-3.3-70b-versatile',
+            model='qwen/qwen3.8-27b',
         )
     except Exception as e:
         return f'[토론 생성 오류] {e}'

@@ -9,17 +9,21 @@ with open(os.path.join(BASE_DIR, 'config.json'), 'r', encoding='utf-8') as f:
     _cfg = json.load(f)
 
 URL   = 'https://api.groq.com/openai/v1/chat/completions'
-MODEL = _cfg.get('groq_model', 'llama-3.3-70b-versatile')
+MODEL = _cfg.get('groq_model', 'qwen/qwen3.8-27b')
 KEY   = _cfg.get('groq_api_key', '')
 
 
-def call(prompt, max_tokens=600, temperature=0.3, model=None):
-    """Groq API 단일 호출. model 지정 시 해당 모델 사용, 아니면 config 기본값."""
+def call(prompt, max_tokens=600, temperature=0.3, model=None, system=None):
+    """Groq API 단일 호출. model/system 지정 가능."""
+    messages = []
+    if system:
+        messages.append({'role': 'system', 'content': system})
+    messages.append({'role': 'user', 'content': prompt})
     resp = requests.post(
         URL,
         headers={'Authorization': f'Bearer {KEY}', 'Content-Type': 'application/json'},
         json={'model': model or MODEL,
-              'messages': [{'role': 'user', 'content': prompt}],
+              'messages': messages,
               'temperature': temperature,
               'max_tokens': max_tokens},
         timeout=30,
