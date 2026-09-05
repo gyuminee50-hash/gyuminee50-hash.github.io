@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-04 21:00",
+  "updated": "2026-09-05 09:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -39,7 +39,7 @@
     }
   ],
   "inf": {
-    "kr_count": 31,
+    "kr_count": 19,
     "kr_sources": [
       "연합뉴스"
     ],
@@ -53,11 +53,11 @@
     "alerts": []
   },
   "vix": {
-    "value": 14.11,
+    "value": 14.53,
     "state": "😌 안정"
   },
   "fg": {
-    "value": 45,
+    "value": 42,
     "label": "공포",
     "prev": null
   }
