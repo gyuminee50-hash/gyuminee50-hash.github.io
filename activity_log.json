@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-15 09:00",
+  "updated": "2026-09-15 21:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -58,7 +58,7 @@
     "state": "🙂 보통 이하"
   },
   "fg": {
-    "value": 31,
+    "value": 30,
     "label": "공포",
     "prev": null
   }
