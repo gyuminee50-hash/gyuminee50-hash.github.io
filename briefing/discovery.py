@@ -7,8 +7,10 @@
       → 후행 즉사(미래성 0점) + 절대바(7점) 통과
       → signals DB 로깅 + 텔레그램 발송
 """
-import json, os, re, sqlite3, yaml, requests, xml.etree.ElementTree as ET
+import json, os, re, sqlite3, sys, yaml, requests, xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, date, timezone
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 import yfinance as yf
 import groq_client
@@ -27,6 +29,22 @@ RUBRIC_THRESHOLD = _cfg['rubric']['threshold']
 SCOUT_MODEL      = _cfg['models']['scout']
 JUDGE_MODEL      = _cfg['models']['judge']
 
+# 고정 signal_type 목록 — 스카우트 결과를 이 목록으로 강제 정규화
+VALID_SIGNAL_TYPES = {
+    '설비증설', '대규모수주', '신규계약', '공급망변화',
+    '정책수혜', '실적서프라이즈', 'M&A', '기타',
+}
+
+def _normalize_signal_type(raw: str) -> str:
+    """공백·대소문자 정규화 후 고정 목록에 없으면 '기타'로 치환."""
+    if not raw:
+        return '기타'
+    s = raw.strip().replace(' ', '')   # "정책 수혜" → "정책수혜"
+    return s if s in VALID_SIGNAL_TYPES else '기타'
+
+# 루브릭 JSON 키 오타 교정 매핑
+_RUBRIC_KEY_FIX = {'출처신료도': '출처신뢰도', '출처신뢰도_근거_': '출처신뢰도_근거'}
+
 # 발굴 전용 광범위 뉴스 RSS (보유종목 뉴스 아닌 시장 전체 스캔)
 DISCOVERY_FEEDS = [
     ('Reuters',       'https://feeds.reuters.com/reuters/businessNews'),
@@ -44,12 +62,22 @@ _SCOUT_PROMPT = """\
 헤드라인: {headline}
 
 JSON 형식으로만 응답. 마크다운 없이 순수 JSON:
-{{"has_catalyst": true/false, "ticker": "티커 또는 null", "market": "US", "signal_type": "설비증설/대규모수주/신규계약/공급망변화/정책수혜/실적서프라이즈/기타", "reason": "한 줄 이유"}}
+{{"has_catalyst": true/false, "ticker": "티커 또는 null", "market": "US", "signal_type": "설비증설/대규모수주/신규계약/공급망변화/정책수혜/실적서프라이즈/M&A/기타", "reason": "한 줄 이유"}}
 
-판단 기준:
-- 촉매 있음: 설비 증설, 대규모 수주, 신규 계약, 공급망 변화, 정책 수혜, 예상 외 실적, M&A
-- 촉매 없음: 일반 시황/지수 동향, CEO 의견, 이미 발표된 과거 실적, 마케팅
-- 특정 상장 주식 티커와 연결 불가면 ticker를 null로"""
+signal_type 선택 규칙 (반드시 이 중 하나):
+- 설비증설: 공장·생산설비 신규 투자
+- 대규모수주: 계약 규모 숫자 있는 수주
+- 신규계약: 파트너십·공급계약 체결
+- 공급망변화: 공급사 교체·단가 변화
+- 정책수혜: 정부 보조금·규제 완화
+- 실적서프라이즈: 예상치 초과 실적 (미래 실적 가이던스만 해당, 이미 발표된 결과 ✕)
+- M&A: 인수합병 (루머 단계만, 완료 발표 ✕)
+- 기타: 위 어디도 해당 없음
+
+촉매 없음 → has_catalyst: false:
+- 일반 시황/지수 동향, CEO 의견 개진, 이미 발표된 과거 실적
+- 영어 헤드라인이 분석 기사/칼럼 제목인 경우
+- 특정 상장 주식 티커와 연결 불가"""
 
 _RUBRIC_PROMPT = """\
 다음 투자 뉴스에 대한 선행신호 품질을 루브릭으로 채점하라.
@@ -62,13 +90,16 @@ _RUBRIC_PROMPT = """\
 {{"미래성": 0, "미래성_근거": "한 줄", "인과명확성": 0, "인과명확성_근거": "한 줄", "반영여부": 0, "반영여부_근거": "한 줄", "구체성": 0, "구체성_근거": "한 줄", "출처신뢰도": 0, "출처신뢰도_근거": "한 줄", "총점": 0, "논리사슬": "한 문단"}}
 
 채점 기준:
-- 미래성: 0=이미 발표된 실적/과거 가격변동, 1=미래 이벤트 언급, 2=명확한 미래 이벤트 + 시점
+- 미래성: 0=이미 발표된 실적/과거가격/완료된 M&A, 1=미래 이벤트 언급, 2=명확한 미래 이벤트 + 시점
 - 인과명확성: 0=연결 불명, 1=간접 연결, 2=이벤트→주가 2단계 이내 직접 연결
 - 반영여부: 0=점검 안 함, 1=부분 반영 가능성, 2="아직 주가 미반영" 근거 있음
 - 구체성: 0=막연, 1=부분 숫자, 2=규모·시점·금액 숫자 포함
-- 출처신뢰도: 0=불명/찌라시, 1=일반 언론, 2=Reuters/AP/WSJ/Bloomberg/FT
+- 출처신뢰도: 0=불명/블로그/찌라시, 1=일반 언론, 2=Reuters/AP/WSJ/Bloomberg/FT
 
-핵심 규칙: 미래성이 0점이면 즉시 탈락 (총점 무관)"""
+핵심 규칙:
+- 미래성이 0점이면 즉시 탈락 (총점 무관)
+- 총점은 반드시 5개 항목 합산으로 계산 (0~10점)
+- 반영여부 2점은 근거가 명확할 때만 부여 — 추정 금지"""
 
 _HOLDINGS_MSG = """\
 <b>⚠️ [보유종목 알림] {ticker}</b>
@@ -127,10 +158,12 @@ def _scout_filter(headline, source):
             model=SCOUT_MODEL,
         )
         raw = raw.strip()
-        # JSON 추출 (마크다운 코드블록 제거)
         raw = re.sub(r'^```[a-z]*\n?', '', raw)
         raw = re.sub(r'\n?```$', '', raw)
-        return json.loads(raw)
+        result = json.loads(raw)
+        # signal_type 고정 목록으로 정규화 (공백 제거 + 알 수 없는 값 → '기타')
+        result['signal_type'] = _normalize_signal_type(result.get('signal_type', '기타'))
+        return result
     except Exception as e:
         return {'has_catalyst': False, 'ticker': None, 'reason': str(e)}
 
@@ -161,10 +194,24 @@ def _judge_rubric(headline, ticker, signal_type):
         raw = raw.strip()
         raw = re.sub(r'^```[a-z]*\n?', '', raw)
         raw = re.sub(r'\n?```$', '', raw)
-        return json.loads(raw)
+        result = json.loads(raw)
+        # LLM 오타 키 교정 (예: "출처신료도" → "출처신뢰도")
+        for wrong, correct in _RUBRIC_KEY_FIX.items():
+            if wrong in result:
+                result[correct] = result.pop(wrong)
+        return result
     except Exception as e:
         print(f'    [루브릭 오류 {ticker}] {e}')
         return None
+
+
+_VALID_TICKER = re.compile(r'^[A-Z]{1,5}(\.[A-Z])?$')
+
+def _is_valid_ticker(ticker):
+    """US 티커 형식 체크: 1~5 영문자(+옵션 .A/.B 류). 회사명/긴 문자열 차단."""
+    if not ticker:
+        return False
+    return bool(_VALID_TICKER.match(ticker.upper().strip()))
 
 
 def _get_price(ticker):
@@ -246,24 +293,34 @@ def run_discovery():
     for art in articles:
         result = _scout_filter(art['title'], art['source'])
         if result.get('has_catalyst') and result.get('ticker'):
-            candidates.append({**art, **result})
+            t = result['ticker'].upper().strip()
+            if _is_valid_ticker(t):
+                result['ticker'] = t
+                candidates.append({**art, **result})
+            else:
+                print(f'  [스킵] 잘못된 ticker 형식: {t!r} ({art["title"][:40]})')
 
     print(f'  촉매 후보: {len(candidates)}건')
     if not candidates:
         print('  촉매 없음 — 종료')
         return
 
-    # ── 3. 보유종목 제외 + 14일 재탕 제외 ──────────────────────────
+    # ── 3. 보유종목 제외 + 14일 재탕 제외 + 배치 내 중복 제거 ──────
     fresh = []
+    seen_this_batch = set()   # 같은 실행에서 같은 ticker 2번 통과 방지
     for c in candidates:
         t = c['ticker'].upper()
         if t in EXCLUDE_HOLDINGS:
             print(f'  [{t}] 보유종목 발굴 제외')
             continue
+        if t in seen_this_batch:
+            print(f'  [{t}] 배치 내 중복 — 제외')
+            continue
         if _is_recent(t, NOVELTY_DAYS):
             print(f'  [{t}] {NOVELTY_DAYS}일 재탕 제외')
             continue
         c['ticker'] = t
+        seen_this_batch.add(t)
         fresh.append(c)
 
     print(f'  신규 후보: {len(fresh)}건')
@@ -318,12 +375,16 @@ def run_discovery():
         reasoning   = rubric.get('논리사슬', '')
 
         price_at = _get_price(ticker)
-        row_id   = _log_signal_db(
-            ticker=ticker, market='US', signal_type=signal_type,
-            headline=headline, source=source, reasoning=reasoning,
-            rubric_score=total, rubric_detail=rubric,
-            price_at_flag=price_at, bench_at_flag=bench_price,
-        )
+        if price_at is None:
+            print(f'  [{ticker}] 현재가 조회 실패 — DB 저장 건너뜀 (채점 불가)')
+            row_id = None
+        else:
+            row_id = _log_signal_db(
+                ticker=ticker, market='US', signal_type=signal_type,
+                headline=headline, source=source, reasoning=reasoning,
+                rubric_score=total, rubric_detail=rubric,
+                price_at_flag=price_at, bench_at_flag=bench_price,
+            )
 
         lines.append(f'<b>{ticker}</b>  [{signal_type}]')
         lines.append(f'{headline}')
@@ -334,8 +395,8 @@ def run_discovery():
         lines.append(f'<i>DB id: {row_id}</i>' if row_id else '')
         lines.append('')
 
-    lines.append('<i>* 루브릭 7점 이상 + 미래성 통과 신호만 발송</i>')
-    lines.append('<i>  보유종목 발굴 제외 / 14일 재탕 금지</i>')
+    lines.append(f'<i>* 루브릭 {RUBRIC_THRESHOLD}점 이상 + 미래성 통과 신호만 발송</i>')
+    lines.append('<i>  보유종목 발굴 제외 / 14일 재탕 금지 / 배치 내 중복 제거</i>')
 
     _send_telegram('\n'.join(l for l in lines if l is not None))
     print(f'✅ 발굴 신호 {len(qualified)}건 발송 완료!')

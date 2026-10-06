@@ -8,10 +8,12 @@ discovery:
   directions: [상승선행, 급락이상]
 
 rubric:
-  threshold: 7
+  threshold: 8
   kill_if_backward_looking: true   # 미래성 0점이면 총점 무관 즉시 탈락
   threshold_overrides:
     공급망변화: 8
+    M&A: 9           # 이미 발표된 M&A는 priced-in → 더 높은 기준 적용
+    실적서프라이즈: 9  # 결과 발표 후 신호는 선행성 없음 → 더 높은 기준
 
 scanner:
   volume_multiple: 2.0
