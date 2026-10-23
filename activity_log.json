@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-22 21:00",
+  "updated": "2026-10-23 09:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -22,7 +22,7 @@
     {
       "sym": "IEMG",
       "name": "신흥국 ETF",
-      "price": NaN,
+      "price": 75.44,
       "chg": NaN
     },
     {
@@ -43,7 +43,7 @@
     "kr_sources": [
       "연합뉴스"
     ],
-    "us_count": 39,
+    "us_count": 40,
     "us_sources": [
       "CNBC",
       "MarketWatch"
@@ -53,12 +53,12 @@
     "alerts": []
   },
   "vix": {
-    "value": 16.68,
+    "value": 19.03,
     "state": "🙂 보통 이하"
   },
   "fg": {
-    "value": 28,
-    "label": "공포",
+    "value": 20,
+    "label": "극단적 공포",
     "prev": null
   }
 }
