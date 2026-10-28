@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-27 21:00",
+  "updated": "2026-10-28 09:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -43,7 +43,7 @@
     "kr_sources": [
       "연합뉴스"
     ],
-    "us_count": 40,
+    "us_count": 39,
     "us_sources": [
       "CNBC",
       "MarketWatch"
@@ -53,11 +53,11 @@
     "alerts": []
   },
   "vix": {
-    "value": 17.87,
+    "value": 17.52,
     "state": "🙂 보통 이하"
   },
   "fg": {
-    "value": 29,
+    "value": 34,
     "label": "공포",
     "prev": null
   }
