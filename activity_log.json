@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-10 09:00",
+  "updated": "2026-11-10 21:00",
   "portfolio": [
     {
       "sym": "TSM",
@@ -53,11 +53,11 @@
     "alerts": []
   },
   "vix": {
-    "value": 19.92,
-    "state": "🙂 보통 이하"
+    "value": 20.11,
+    "state": "😐 보통"
   },
   "fg": {
-    "value": 32,
+    "value": 33,
     "label": "공포",
     "prev": null
   }
